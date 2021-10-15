@@ -10,12 +10,11 @@ All the sample files should be in FASTA format (.fa)
 2. cd discoAnt
 3. Update discoAnt_params.txt with - Gene name, start and end coordinates and strands
 4. Update discoAnt_params.txt with - path to FASTA folder and discoAnt folder
-5. ```conda env create -f discoAnt.env```
+5. When running the pipeline for the first time - ```bash discoAnt_setup.sh```
 6. ```conda activate discoAnt.env```
-7. When running the pipeline for the first time - ```bash discoAnt_setup.sh```
-8. ```cd /path/to/folder/discoAnt/programs/cDNA_Cupcake```
-9. ```python setup.py build```
-10. ```python setup.py install```
+7. ```cd /path/to/folder/discoAnt/programs/cDNA_Cupcake```
+8. ```python setup.py build```
+9. ```python setup.py install```
 
 #### Refer to the sample submission scripts for running the pipeline on a HPC cluster.
 
