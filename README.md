@@ -1,6 +1,6 @@
 # discoAnt
-version 10102021
-The repository is under-construction.
+- version 10102021
+- The repository is under-construction.
 
 ## Prepare FASTA files in a folder
 All the sample files should be in FASTA format (.fa)
