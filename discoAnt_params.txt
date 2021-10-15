@@ -4,7 +4,8 @@ CHR=chr5
 GENE_START=153489615
 GENE_END=153813873
 
-FASTA=/path/to/folder/fasta
+/path/to/folder/genename
+FASTA=/path/to/folder/genename/fasta
 DISCOANT=/pathto/folder/discoAnt
 
 PROGRAMS=$DISCOANT/programs
