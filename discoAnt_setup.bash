@@ -5,11 +5,9 @@ conda env create -f $DISCOANT/discoAnt.env.yml
 
 ## Installing programs
 
-mkdir -p $PROGRAMS/TranscriptClean
 mkdir -p $PROGRAMS/SQANTI3
 mkdir -p $PROGRAMS/cDNA_Cupcake
 
-git clone https://github.com/mortazavilab/TranscriptClean.git $PROGRAMS/TranscriptClean
 wget https://github.com/ConesaLab/SQANTI3/archive/refs/tags/v1.3.tar.gz -P $PROGRAMS
 tar -xvf $PROGRAMS/v1.3.tar.gz
 wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred -P $PROGRAMS/SQANTI3-1.3/utilities/
