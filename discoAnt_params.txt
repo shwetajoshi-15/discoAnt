@@ -4,7 +4,7 @@ CHR=chr5
 GENE_START=153489615
 GENE_END=153813873
 
-/path/to/folder/GRIA1
+ALL=/path/to/folder/GRIA1
 FASTA=/path/to/folder/GRIA1/fasta
 DISCOANT=/path/to/folder/discoAnt
 
