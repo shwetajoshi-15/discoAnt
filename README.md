@@ -21,7 +21,7 @@ All the sample files should be in FASTA format (.fa)
 
 ## What does discoAnt do?
 
-1. Quality control for the fasta files  
+1. Quality control for the fasta files (Under construction)  
 1.a. Generates a file with no. of reads  \
 1.b. average read length  \
 1.c. read length in each barcode/sample  
@@ -32,6 +32,7 @@ All the sample files should be in FASTA format (.fa)
 6. Classify the transcripts based on known annotations 
 7. Align the samples fasta files to the metagene 
 8. Generate counts/TPM based on the alignments to the metagene
+9. Generate stacked bar plots representing transcript usage
 
 
 
