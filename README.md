@@ -22,8 +22,8 @@ All the sample files should be in FASTA format (.fa)
 ## What does discoAnt do?
 
 1. Quality control for the fasta files  
-1.a. Generates a file with no. of reads. 
-1.b. average read length 
+1.a. Generates a file with no. of reads  \
+1.b. average read length  \
 1.c. read length in each barcode/sample  
 2. Align the sample fasta files to reference genome
 3. Filter out off-target alignments (based on the gene start and end site provided)
