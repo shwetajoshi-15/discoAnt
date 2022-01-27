@@ -24,11 +24,10 @@ mkdir -p $DISCOANT/$GENE/minimap2
 mkdir -p $DISCOANT/$GENE/minimap2_target
 mkdir -p $DISCOANT/$GENE/flair
 mkdir -p $DISCOANT/$GENE/flair/$GENE
-mkdir -p $DISCOANT/$GENE/sqanti3
-mkdir -p $DISCOANT/$GENE/flair_metagene_minimap2
-mkdir -p $DISCOANT/$GENE/flair_metagene_salmon
 mkdir -p $DISCOANT/$GENE/flair/collapse
 mkdir -p $DISCOANT/$GENE/flair/correct
+mkdir -p $DISCOANT/$GENE/sqanti3
+mkdir -p $DISCOANT/$GENE/flair_metagene_minimap2
 mkdir -p $DISCOANT/$GENE/flair_metagene_counts
 mkdir -p $DISCOANT/$GENE/plots
 
@@ -117,7 +116,7 @@ echo "FLAIR - correct and collapse"
 	cat $FASTA/*.fa > $ALL/all.fa
 
 	python $PROGRAMS/flair/bin/bam2Bed12.py -i $DISCOANT/$GENE/minimap2_target/"$GENE"_merged_sorted.bam > $DISCOANT/$GENE/minimap2_target/"$GENE"_merged_sorted.bed
-	python $PROGRAMS/flair/flair.py correct -q $DISCOANT/$GENE/minimap2_target/"$GENE"_merged_sorted.bed -c $REF_HG38/chrom_sizes.txt -f $REF_HG38/gencode.v35.annotation.gtf -g $REF_HG38/GRCh38.p13.genome_edit.fa -o $DISCOANT/$GENE/flair/correct/default
+	python $PROGRAMS/flair/flair.py correct -q $DISCOANT/$GENE/minimap2_target/"$GENE"_merged_sorted.bed -c $REF_HG38/chrom_sizes.txt -f $REF_HG38/gencode.v35.annotation.gtf -g $REF_HG38/GRCh38.p13.genome_edit.fa -o $DISCOANT/$GENE/flair/correct
 
 	python $PROGRAMS/flair/flair.py collapse -r $ALL/all.fa -q $DISCOANT/$GENE/flair/correct/default_all_corrected.bed -f $REF_HG38/gencode.v35.annotation.gtf -g $REF_HG38/GRCh38.p13.genome_edit.fa -o $DISCOANT/$GENE/flair/collapse/default_500 --temp_dir $DISCOANT/$GENE/flair -s 500
 	python $PROGRAMS/flair/flair.py collapse -r $ALL/all.fa -q $DISCOANT/$GENE/flair/correct/default_all_corrected.bed -f $REF_HG38/gencode.v35.annotation.gtf -g $REF_HG38/GRCh38.p13.genome_edit.fa -o $DISCOANT/$GENE/flair/collapse/default_100 --temp_dir $DISCOANT/$GENE/flair -s 100
