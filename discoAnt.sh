@@ -13,7 +13,7 @@
 ## 7. Align the samples fasta files to the metagene
 ## 8. Generate counts/TPM based on the alignments to the metagene
 
-source discoAnt_params_CALCR.txt
+source discoAnt_params.txt
 export PYTHONPATH="$PROGRAMS/cDNA_Cupcake/sequence/:$PYTHONPATH"
 
 echo "Making folders"
