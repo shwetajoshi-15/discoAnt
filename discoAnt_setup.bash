@@ -5,14 +5,15 @@ conda env create -f $DISCOANT/discoAnt.env.yml
 
 ## Installing programs
 
-mkdir -p $PROGRAMS/SQANTI3
-mkdir -p $PROGRAMS/cDNA_Cupcake
-
 wget https://github.com/ConesaLab/SQANTI3/archive/refs/tags/v1.3.tar.gz -P $PROGRAMS
 tar -xvf $PROGRAMS/v1.3.tar.gz
 wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred -P $PROGRAMS/SQANTI3-1.3/utilities/
 chmod +x $PROGRAMS/SQANTI3-1.3/utilities/gtfToGenePred 
-git clone https://github.com/Magdoll/cDNA_Cupcake.git $PROGRAMS/cDNA_Cupcake
+git clone https://github.com/Magdoll/cDNA_Cupcake.git -P $PROGRAMS
+cd $PROGRAMS/cDNA_Cupcake
+python setup.py build
+python setup.py install
+cd ../../
 
 
 ## GENCODE genome reference and annotation
