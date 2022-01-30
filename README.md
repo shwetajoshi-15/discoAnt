@@ -1,5 +1,5 @@
 # discoAnt
-- version 10012022
+- version 30012022
 - The repository is under-construction.
 
 ## Prepare FASTA files in a folder
