@@ -5,9 +5,9 @@ CHR=chr5
 GENE_START=153489615
 GENE_END=153813873
 
-ALL=/path/to/folder/GRIA1
-FASTA=/path/to/folder/GRIA1/fasta
-DISCOANT=/path/to/folder/discoAnt
+ALL=GRIA1
+FASTA=GRIA1/fasta
+DISCOANT=discoAn_v1
 
 PROGRAMS=$DISCOANT/programs
 SCRIPTS=$DISCOANT/scripts
