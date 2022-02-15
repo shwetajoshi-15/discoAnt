@@ -116,9 +116,17 @@ echo "FLAIR - correct and collapse"
 
 	python $PROGRAMS/flair/bin/bam2Bed12.py -i $DISCOANT/$GENE/minimap2_target/"$GENE"_merged_sorted.bam > $DISCOANT/$GENE/minimap2_target/"$GENE"_merged_sorted.bed
 	python $PROGRAMS/flair/flair.py correct -q $DISCOANT/$GENE/minimap2_target/"$GENE"_merged_sorted.bed -c $REF_HG38/chrom_sizes.txt -f $REF_HG38/gencode.v35.annotation.gtf -g $REF_HG38/GRCh38.p13.genome_edit.fa -o $DISCOANT/$GENE/flair/correct
-
+	
+	python $PROGRAMS/flair/flair.py collapse -r $ALL/all.fa -q $DISCOANT/$GENE/flair/correct_all_corrected.bed -f $REF_HG38/gencode.v35.annotation.gtf -g $REF_HG38/GRCh38.p13.genome_edit.fa -o $DISCOANT/$GENE/flair/collapse/default --temp_dir $DISCOANT/$GENE/flair
 	python $PROGRAMS/flair/flair.py collapse -r $ALL/all.fa -q $DISCOANT/$GENE/flair/correct_all_corrected.bed -f $REF_HG38/gencode.v35.annotation.gtf -g $REF_HG38/GRCh38.p13.genome_edit.fa -o $DISCOANT/$GENE/flair/collapse/default_500 --temp_dir $DISCOANT/$GENE/flair -s 500
 	python $PROGRAMS/flair/flair.py collapse -r $ALL/all.fa -q $DISCOANT/$GENE/flair/correct_all_corrected.bed -f $REF_HG38/gencode.v35.annotation.gtf -g $REF_HG38/GRCh38.p13.genome_edit.fa -o $DISCOANT/$GENE/flair/collapse/default_100 --temp_dir $DISCOANT/$GENE/flair -s 100
+
+
+##########                                       ##########
+########## 5. Gffcompare - annotate transcripts  ##########
+##########                                       ##########
+
+gffcompare 
 
 ##########                          ##########
 ########## 6. Transcript annotation ##########
