@@ -12,6 +12,14 @@
 #PBS -N discoAnt
 
 source activate discoAnt.env
-module load samtools/1.9
+
+module load foss/2019b
+module load r/4.0.5
+module load gcc/10.2.0
+module load samtools/1.12
+module load gffread/0.12.7
+module load gffcompare/0.12.2 
+module load minimap2
+module load salmon
 
 bash /path/to/folder/discoAnt/discoAnt.sh
