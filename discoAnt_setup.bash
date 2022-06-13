@@ -7,8 +7,10 @@ conda env create -f $DISCOANT/discoAnt.env.yml
 
 wget https://github.com/ConesaLab/SQANTI3/archive/refs/tags/v1.3.tar.gz -P $PROGRAMS
 tar -xvf $PROGRAMS/v1.3.tar.gz
+
 wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred -P $PROGRAMS/SQANTI3-1.3/utilities/
 chmod +x $PROGRAMS/SQANTI3-1.3/utilities/gtfToGenePred 
+
 git clone https://github.com/Magdoll/cDNA_Cupcake.git -P $PROGRAMS
 cd $PROGRAMS/cDNA_Cupcake
 python setup.py build
@@ -40,3 +42,6 @@ mkdir -p $REF_HG38
         gunzip $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed.gz
         
         sed -i 's/^/chr/' $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed
+        
+        
+
