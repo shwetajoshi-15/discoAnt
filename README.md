@@ -1,5 +1,5 @@
 # discoAnt
-- version 30012022
+- version 04052022
 - The repository is under-construction.
 
 ## Prepare FASTA files in a folder
@@ -24,11 +24,9 @@ All the sample files should be in FASTA format (.fa)
 2. Align the sample fasta files to reference genome
 3. Filter out off-target alignments (based on the gene start and end site provided)
 4. Merge alignments from all samples
-5. Correct (based on reference transcript annotations) and collapse transcripts
-6. Classify the transcripts based on known annotations 
-7. Align the samples fasta files to the metagene 
-8. Generate counts/TPM based on the alignments to the metagene
-9. Generate stacked bar plots representing transcript usage
+5. Correct and collapse transcripts
+6. Align reads to the metagene and generate counts/TPM  
+7. Generate stacked bar plots representing transcript usage
 
 
 
