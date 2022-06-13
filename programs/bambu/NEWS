@@ -1,0 +1,76 @@
+bambu v2.2.0 (Change date: 2022-04-27)
+===========================================
+Major changes: 
+    * Implemented a de-novo mode where no annotation is provided
+    * Implemented trackReads to allow users to track read to transcript model map
+    * Implemented outputDistTable to output the distance metrics bedtween read class and transcript models
+    * Allow input files without specific extension for fasta and annotation gtf files (gff etc)
+    
+
+Minor fixes:
+    * Fix the bug when reads are aligned outside the supplied genome and 
+    * Provides a warning and issues with bsgenome and their strand.
+    * Provides a more informative error when running in denovo mode if no transcripts pass the threshold
+    * Fix bug in runs where annotation gene names had "gene" 
+
+bambu v2.0.4 (Change date: 2022-02-08)
+===========================================
+Minor fixes: 
+    * Fix out of bounds aligned reads bug
+    * Fix bsgenome strand bug
+    * Make error clear when in the de novo mode and threshold is too low
+    * Move NDR out of discovery parameters list
+    
+
+bambu v2.0.3 (Change date: 2022-01-30)
+===========================================
+Minor fixes: 
+    * Skip the errors when txScore is not calculated
+
+bambu v2.0.1 (Change date: 2022-11-23)
+===========================================
+Minor fixes: 
+    * Update saved objects using updated Bioc 3.14 packages 
+
+bambu v2.0.0 (Change date: 2021-10-18)
+=============
+Major Changes:
+    * Implemented a machine learning model to estimate transcript-level novel discovery rate
+    * Implemented full length estimates, partial length estimates and unique read counts in final output
+    * Improved the performance for the extend-annotations module with simplified code
+    * Improved the performance when large amounts of annotations are missing.
+    * Implemented a lowMemory option to reduce the memory requirements for very large samples (>100 million reads)
+
+Minor fixes:
+    * Remove the use of get() which looks into environment variables (prone to crashes if a variable of the same name exists) and directly references the functions that should be used instead. 
+    * Fixed the error when a .fa file is provided as a string variable in non-windows system
+    * Fixed the error when no single exon read class is provided in any samples
+    * Fixed the bug when no splice overlap is found between read classes and annotations
+
+bambu v1.0.2 (Change date: 2020-11-10)
+==============
+
+Changes:
+    * Bug fix for author name display
+    * Bug fix for calling fasta file and bam file from ExperimentHub
+    * Update NEWS file 
+
+bambu v1.0.1 (Change date: 2020-11-06)
+==============
+
+Changes:
+    * Bug fix for parallel computation to avoid bplapply
+
+bambu v0.99.4 (Release date: 2020-08-18)
+==============
+
+Changes:
+    * Remove codes using seqlevelStyle to allow customized annotation
+    * update the requirement of R version and ExperimentHub version
+
+
+
+bambu v0.99.1 (Release date: 2020-08-18)
+==============
+
+    * First submission to BioConductor
