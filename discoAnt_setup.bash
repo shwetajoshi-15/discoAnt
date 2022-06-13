@@ -36,8 +36,6 @@ mkdir -p $REF_HG38
         wget https://raw.githubusercontent.com/Magdoll/images_public/master/SQANTI2_support_data/human.polyA.list.txt -P $REF_HG38
         wget https://polyasite.unibas.ch/download/atlas/2.0/GRCh38.96/atlas.clusters.2.0.GRCh38.96.bed.gz --no-check-certificate -P $REF_HG38
 
-## Downlaoding reference files for SQANTI3 annotation
-
         gunzip $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed.gz 
         gunzip $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed.gz
         
