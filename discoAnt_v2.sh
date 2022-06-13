@@ -13,7 +13,7 @@
 ## 7. Align the samples fasta files to the metagene
 ## 8. Generate counts/TPM based on the alignments to the metagene
 
-source /data/gpfs/projects/punim0826/discoAnt/discoAnt_params_GENE.txt
+source /data/gpfs/projects/punim0826/discoAnt/discoAnt_params.txt
 
 export PYTHONPATH="$PROGRAMS/cDNA_Cupcake/sequence/:$PYTHONPATH"
 
