@@ -40,9 +40,9 @@ echo "minimap2 - Mapping fasta files to genome"
         minimap2 -ax splice --splice-flank=no $REF_HG38/GRCh38.p13.genome_edit.fa $FASTA/${base}.fa > $DISCOANT/"$GENE"/minimap2/${base}.sam
         samtools view -S -h -b $DISCOANT/"$GENE"/minimap2/${base}.sam | samtools sort - > $DISCOANT/"$GENE"/minimap2/${base}_sorted.bam
         samtools view -h -F 2308 $DISCOANT/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $DISCOANT/"$GENE"/minimap2/${base}_pri_sorted.bam
-        samtools view -h -o $DISCOANT/"$GENE"/minimap2/"$GENE"_pri_merged.sam $DISCOANT/"$GENE"/minimap2/"$GENE"_pri_merged_sorted.bam
         done
 
+samtools merge -f $DISCOANT/"$GENE"/minimap2/"$GENE"_pri_merged.bam $DISCOANT/"$GENE"/minimap2/*_pri_sorted.bam
 
 ##########                                                       ##########
 ########## 2.a. Correcting and collapsing transcripts with bambu ##########
@@ -51,7 +51,7 @@ echo "minimap2 - Mapping fasta files to genome"
 Rscript $SCRIPTS/bambu_tx_discovery.R -b $DISCOANT/"$GENE"/minimap2_target/"$GENE"_pri_merged_sorted.bam \
 -f $REF_HG38/GRCh38.p13.genome_edit.fa \
 -t $REF_HG38/gencode.v35.annotation.gtf \
--o $DISCOANT/"$GENE"_8000/bambu/0.1
+-o $DISCOANT/"$GENE"/bambu
 
 ## Extracting transcripts belonging to the Gene of Interest 
 
