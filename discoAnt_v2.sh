@@ -48,7 +48,7 @@ samtools merge -f $DISCOANT/"$GENE"/minimap2/"$GENE"_pri_merged.bam $DISCOANT/"$
 ########## 2.a. Correcting and collapsing transcripts with bambu ##########
 ##########                                                       ##########
 
-Rscript $SCRIPTS/bambu_tx_discovery.R -b $DISCOANT/"$GENE"/minimap2_target/"$GENE"_pri_merged_sorted.bam \
+Rscript $SCRIPTS/bambu_tx_discovery.R -b $DISCOANT/"$GENE"/minimap2/"$GENE"_pri_merged_sorted.bam \
 -f $REF_HG38/GRCh38.p13.genome_edit.fa \
 -t $REF_HG38/gencode.v35.annotation.gtf \
 -o $DISCOANT/"$GENE"/bambu
