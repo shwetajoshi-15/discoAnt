@@ -64,7 +64,7 @@ cat $DISCOANT/"$GENE"/bambu/extended_annotations.gtf | grep -wf $DISCOANT/"$GENE
 ##########                                                               ##########
 
 gffread -w $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.fa -g $REF_HG38/GRCh38.p13.genome_edit.fa $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
-salmon index -t bambu/"$GENE"/extended_annotations_"$GENE_ID"_count_1.fa -i $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1 -k 31
+salmon index -t $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.fa -i $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1 -k 31
 
 ##########                                                              ##########
 ########## 2.c. Re-aligning and quantifying filtered bambu transcripts  ##########
