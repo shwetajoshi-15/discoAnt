@@ -56,15 +56,15 @@ Rscript $SCRIPTS/bambu_tx_discovery.R -b $DISCOANT/"$GENE"/minimap2_target/"$GEN
 ## Extracting transcripts belonging to the Gene of Interest 
 
 cat $DISCOANT/"$GENE"/bambu/counts_transcript.txt | grep "$GENE_ID" | awk '{ if ($3 >= 1) print}' > $DISCOANT/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1.txt
-cat $DISCOANT/"$GENE"/bambu/counts_transcript_ENSG00000135250.17_count_1.txt | awk '{ print $1 }' > $DISCOANT/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1_transcript.txt
+cat $DISCOANT/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1.txt | awk '{ print $1 }' > $DISCOANT/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1_transcript.txt
 cat $DISCOANT/"$GENE"/bambu/extended_annotations.gtf | grep -wf $DISCOANT/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1_transcript.txt > $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
 
 ##########                                                               ##########
 ########## 2.b. Creating a transcriptome based on the bambu transcripts  ##########
 ##########                                                               ##########
 
-gffread -w $DISCOANT/"$GENE"/bambu/bambu_readFractionByGene_0.01.fa -g $REF_HG38/GRCh38.p13.genome_edit.fa $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
-salmon index -t bambu/"$GENE"/extended_annotations_ENSG00000155511.18_count_1.fa -i $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1 -k 31
+gffread -w $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.fa -g $REF_HG38/GRCh38.p13.genome_edit.fa $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
+salmon index -t bambu/"$GENE"/extended_annotations_"$GENE_ID"_count_1.fa -i $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1 -k 31
 
 ##########                                                              ##########
 ########## 2.c. Re-aligning and quantifying filtered bambu transcripts  ##########
