@@ -42,7 +42,7 @@ echo "minimap2 - Mapping fasta files to genome"
         samtools view -h -F 2308 $DISCOANT/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $DISCOANT/"$GENE"/minimap2/${base}_pri_sorted.bam
         done
 
-samtools merge -f $DISCOANT/"$GENE"/minimap2/"$GENE"_pri_merged.bam $DISCOANT/"$GENE"/minimap2/*_pri_sorted.bam
+samtools merge -f $DISCOANT/"$GENE"/minimap2/"$GENE"_merged.bam $DISCOANT/"$GENE"/minimap2/*_sorted.bam
 
 ##########                                                       ##########
 ########## 2.a. Correcting and collapsing transcripts with bambu ##########
