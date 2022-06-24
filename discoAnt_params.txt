@@ -1,8 +1,8 @@
 GENE=SIRV5
 GENE_ID=SIRV5
 
-FASTA=discoAnt/fasta
 DISCOANT=discoAnt
+FASTA=discoAnt/fasta
 
 PROGRAMS=$DISCOANT/programs
 SCRIPTS=$DISCOANT/scripts
