@@ -8,7 +8,7 @@ conda env create -f discoAnt.env.yml
 wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred -P $PROGRAMS/SQANTI3-4.2/utilities/
 chmod +x $PROGRAMS/SQANTI3-4.2/utilities/gtfToGenePred 
 
-git clone https://github.com/Magdoll/cDNA_Cupcake.git $PROGRAMS/.
+git clone https://github.com/Magdoll/cDNA_Cupcake.git $PROGRAMS
 cd $PROGRAMS/cDNA_Cupcake
 python setup.py build
 python setup.py install
