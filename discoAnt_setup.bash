@@ -8,8 +8,9 @@ conda env create -f discoAnt.env.yml
 wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred -P $PROGRAMS/SQANTI3-4.2/utilities/
 chmod +x $PROGRAMS/SQANTI3-4.2/utilities/gtfToGenePred 
 
+cd $PROGRAMS
 git clone https://github.com/Magdoll/cDNA_Cupcake.git $PROGRAMS
-cd $PROGRAMS/cDNA_Cupcake
+cd cDNA_Cupcake
 python setup.py build
 python setup.py install
 cd ../../
@@ -19,8 +20,8 @@ cd ../../
 
 mkdir -p $REF_HG38
 
-        wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_34/GRCh38.p13.genome.fa.gz -P $REF_HG38
-        wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_35/gencode.v35.annotation.gtf.gz -P $REF_HG38
+        wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_34/GRCh38.p13.genome.fa.gz -P $REF_HG38/
+        wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_35/gencode.v35.annotation.gtf.gz -P $REF_HG38/
 
 ## Editing the reference and annotation files
 
@@ -31,9 +32,9 @@ mkdir -p $REF_HG38
 
 ## Downlaoding reference files for SQANTI3 annotation
 
-        wget http://reftss.clst.riken.jp/datafiles/3.3/human/refTSS_v3.3_human_coordinate.hg38.bed.gz -P $REF_HG38
-        wget https://raw.githubusercontent.com/Magdoll/images_public/master/SQANTI2_support_data/human.polyA.list.txt -P $REF_HG38
-        wget https://polyasite.unibas.ch/download/atlas/2.0/GRCh38.96/atlas.clusters.2.0.GRCh38.96.bed.gz --no-check-certificate -P $REF_HG38
+        wget http://reftss.clst.riken.jp/datafiles/3.3/human/refTSS_v3.3_human_coordinate.hg38.bed.gz -P $REF_HG38/
+        wget https://raw.githubusercontent.com/Magdoll/images_public/master/SQANTI2_support_data/human.polyA.list.txt -P $REF_HG38/
+        wget https://polyasite.unibas.ch/download/atlas/2.0/GRCh38.96/atlas.clusters.2.0.GRCh38.96.bed.gz --no-check-certificate -P $REF_HG38/
 
         gunzip $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed.gz 
         gunzip $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed.gz
