@@ -6,12 +6,12 @@
 ## 1.b. average read length
 ## 1.c. read length in each barcode/sample
 ## 2. Align the sample fasta files to reference genome
-## 3. Filter out off-target alignments
-## 4. Merge alignments from all samples
-## 5. Correct and collapse transcripts
-## 6. Classify the transcripts based on known annotations
-## 7. Align the samples fasta files to the metagene
-## 8. Generate counts/TPM based on the alignments to the metagene
+## 3. Merge alignments from all samples
+## 4. Correct and collapse transcripts
+## 5. Align the samples fasta files to the metagene
+## 6. Generate counts/TPM based on the alignments to the metagene
+## 7. Classify the transcripts based on known annotations
+
 
 source /data/gpfs/projects/punim0826/discoAnt/discoAnt_params.txt
 
