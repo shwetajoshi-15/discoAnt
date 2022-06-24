@@ -42,7 +42,11 @@ echo "minimap2 - Mapping fasta files to genome"
         samtools view -h -F 2308 $DISCOANT/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $DISCOANT/"$GENE"/minimap2/${base}_pri_sorted.bam
         done
 
+samtools merge -f $DISCOANT/"$GENE"/minimap2/"$GENE"_pri_merged.bam $DISCOANT/"$GENE"/minimap2/*_pri_sorted.bam
 samtools merge -f $DISCOANT/"$GENE"/minimap2/"$GENE"_merged.bam $DISCOANT/"$GENE"/minimap2/*_sorted.bam
+
+samtools index $DISCOANT/"$GENE"/minimap2/"$GENE"_pri_merged.bam
+samtools index $DISCOANT/"$GENE"/minimap2/"$GENE"_merged.bam
 
 ##########                                                       ##########
 ########## 2.a. Correcting and collapsing transcripts with bambu ##########
@@ -88,9 +92,10 @@ done
 gffcompare -r $REF_HG38/gencode.v35.annotation.gtf \
 -o $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1 $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
 
-$PROGRAMS/SQANTI3-1.3/sqanti3_qc.py \
---gtf $DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf \
-$REF_HG38/gencode.v35.annotation.gtf $REF_HG38/GRCh38.p13.genome_edit.fa \
---cage_peak $REF_HG38/refTSS_v3.1_human_coordinate.hg38.bed \
---polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/polyA.list \
--o $DISCOANT/bambu
+python $PROGRAMS/SQANTI3-4.2/sqanti3_qc.py \
+$DISCOANT/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf \
+$REF_HG38/gencode.v38.annotation.gtf $REF_HG38/GRCh38.p13.genome_edit.fa \
+--cage_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
+--polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt \
+-d $DISCOANT/bambu -o $GENE --report skip
+
