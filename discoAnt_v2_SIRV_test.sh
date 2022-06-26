@@ -21,10 +21,10 @@ export PYTHONPATH="$PROGRAMS/cDNA_Cupcake/sequence/:$PYTHONPATH"
 echo "Making folders"
 
 mkdir -p $RESULTS
-mkdir -p $RESULTS/"$GENE"
-mkdir -p $RESULTS/"$GENE"/minimap2
-mkdir -p $RESULTS/"$GENE"/bambu
-mkdir -p $RESULTS/"$GENE"/bambu_metagene_salmon
+mkdir -p $RESULTS/"$GENE"_test
+mkdir -p $RESULTS/"$GENE"_test/minimap2
+mkdir -p $RESULTS/"$GENE"_test/bambu
+mkdir -p $RESULTS/"$GENE"_test/bambu_metagene_salmon
 
 ##########                                                    ##########
 ########## 1. Aligning sample fasta files to reference genome ##########
@@ -39,38 +39,38 @@ echo "minimap2 - Mapping fasta files to genome"
         base=$(basename $filename .fa)
         echo "On sample : $base"
 
-        minimap2 -ax splice --splice-flank=no $REF_HG38/SIRV5_ref.fa $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
-        samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
-        samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
+        minimap2 -ax splice --splice-flank=no $REF_HG38/SIRV5_ref.fa $FASTA/${base}.fa > $RESULTS/"$GENE"_test/minimap2/${base}.sam
+        samtools view -S -h -b $RESULTS/"$GENE"_test/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"_test/minimap2/${base}_sorted.bam
+        samtools view -h -F 2308 $RESULTS/"$GENE"_test/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"_test/minimap2/${base}_pri_sorted.bam
         done
 
-samtools merge -f $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam $RESULTS/"$GENE"/minimap2/*_pri_sorted.bam
-samtools merge -f $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam $RESULTS/"$GENE"/minimap2/*_sorted.bam
+samtools merge -f $RESULTS/"$GENE"_test/minimap2/"$GENE"_pri_merged.bam $RESULTS/"$GENE"_test/minimap2/*_pri_sorted.bam
+samtools merge -f $RESULTS/"$GENE"_test/minimap2/"$GENE"_merged.bam $RESULTS/"$GENE"_test/minimap2/*_sorted.bam
 
-samtools index $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam
-samtools index $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam
+samtools index $RESULTS/"$GENE"_test/minimap2/"$GENE"_pri_merged.bam
+samtools index $RESULTS/"$GENE"_test/minimap2/"$GENE"_merged.bam
 
 ##########                                                       ##########
 ########## 2.a. Correcting and collapsing transcripts with bambu ##########
 ##########                                                       ##########
 
-Rscript $SCRIPTS/bambu_tx_discovery.R -b $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam \
+Rscript $SCRIPTS/bambu_tx_discovery.R -b $RESULTS/"$GENE"_test/minimap2/"$GENE"_pri_merged.bam \
 -f $REF_HG38/SIRV5_ref.fa \
 -t $REF_HG38/SIRV5_ref.gtf \
--o $RESULTS/"$GENE"/bambu
+-o $RESULTS/"$GENE"_test/bambu
 
 ## Extracting transcripts belonging to the Gene of Interest 
 
-cat $RESULTS/"$GENE"/bambu/counts_transcript.txt | grep "$GENE_ID" | awk '{ if ($3 >= 1) print}' > $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1.txt
-cat $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1.txt | awk '{ print $1 }' > $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1_transcript.txt
-cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -wf $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1_transcript.txt > $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
+cat $RESULTS/"$GENE"_test/bambu/counts_transcript.txt | grep "$GENE_ID" | awk '{ if ($3 >= 1) print}' > $RESULTS/"$GENE"_test/bambu/counts_transcript_"$GENE_ID"_count_1.txt
+cat $RESULTS/"$GENE"_test/bambu/counts_transcript_"$GENE_ID"_count_1.txt | awk '{ print $1 }' > $RESULTS/"$GENE"_test/bambu/counts_transcript_"$GENE_ID"_count_1_transcript.txt
+cat $RESULTS/"$GENE"_test/bambu/extended_annotations.gtf | grep -wf $RESULTS/"$GENE"_test/bambu/counts_transcript_"$GENE_ID"_count_1_transcript.txt > $RESULTS/"$GENE"_test/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
 
 ##########                                                               ##########
 ########## 2.b. Creating a transcriptome based on the bambu transcripts  ##########
 ##########                                                               ##########
 
-gffread -w $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.fa -g $REF_HG38/SIRV5_ref.fa $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
-salmon index -t $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.fa -i $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1 -k 31
+gffread -w $RESULTS/"$GENE"_test/bambu/extended_annotations_"$GENE_ID"_count_1.fa -g $REF_HG38/SIRV5_ref.fa $RESULTS/"$GENE"_test/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
+salmon index -t $RESULTS/"$GENE"_test/bambu/extended_annotations_"$GENE_ID"_count_1.fa -i $RESULTS/"$GENE"_test/bambu/extended_annotations_"$GENE_ID"_count_1 -k 31
 
 ##########                                                              ##########
 ########## 2.c. Re-aligning and quantifying filtered bambu transcripts  ##########
@@ -81,8 +81,8 @@ do
 base=$(basename $filename .fa)
 echo "On sample : $base"
         
-salmon quant -i $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1 -l A \
--r $FASTA/${base}.fa -o $RESULTS/"$GENE"/bambu_metagene_salmon/${base}
+salmon quant -i $RESULTS/"$GENE"_test/bambu/extended_annotations_"$GENE_ID"_count_1 -l A \
+-r $FASTA/${base}.fa -o $RESULTS/"$GENE"_test/bambu_metagene_salmon/${base}
         
 done
 
@@ -92,10 +92,10 @@ done
 ##########                           ##########
 
 gffcompare -r $REF_HG38/SIRV5_ref.gtf \
--o $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1 $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
+-o $RESULTS/"$GENE"_test/bambu/extended_annotations_"$GENE_ID"_count_1 $RESULTS/"$GENE"_test/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
 
 python $PROGRAMS/SQANTI3-4.2/sqanti3_qc.py \
-$RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf \
+$RESULTS/"$GENE"_test/bambu/extended_annotations_"$GENE_ID"_count_1.gtf \
 $REF_HG38/gencode.v38.annotation.gtf $REF_HG38/SIRV5_ref.fa \
 --cage_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
 --polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt \
