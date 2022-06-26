@@ -54,7 +54,7 @@ samtools index $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam
 ########## 2.a. Correcting and collapsing transcripts with bambu ##########
 ##########                                                       ##########
 
-Rscript $SCRIPTS/bambu_tx_discovery.R -b $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam \
+Rscript $SCRIPTS/bambu_tx_discovery.R -b $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam \
 -f $REF_HG38/GRCh38.p13.genome_edit.fa \
 -t $REF_HG38/gencode.v35.annotation.gtf \
 -o $RESULTS/"$GENE"/bambu
