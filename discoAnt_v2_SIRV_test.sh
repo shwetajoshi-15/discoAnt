@@ -96,7 +96,7 @@ gffcompare -r $REF_HG38/SIRV5_ref.gtf \
 
 python $PROGRAMS/SQANTI3-4.2/sqanti3_qc.py \
 $RESULTS/"$GENE"_test/bambu/extended_annotations_"$GENE_ID"_count_1.gtf \
-$REF_HG38/gencode.v38.annotation.gtf $REF_HG38/SIRV5_ref.fa \
+$REF_HG38/SIRV5_ref.fa $REF_HG38/SIRV5_ref.fa \
 --cage_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
 --polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt \
 -d $RESULTS/bambu -o $GENE --report skip
