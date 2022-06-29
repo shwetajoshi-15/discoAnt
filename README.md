@@ -1,7 +1,6 @@
 # discoAnt
 - version 28062022
-- bambu v2.0.0
-- SQANTI3 v4.2
+tested on conda v4.12.0
 
 ## Prepare FASTA files in a folder
 All the sample files should be in FASTA format (.fa)
