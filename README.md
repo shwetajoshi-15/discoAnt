@@ -10,9 +10,12 @@ All the sample files should be in FASTA format (.fa)
 
 1. git clone repository
 2. cd discoAnt
-3. Update discoAnt_params.txt with - Gene info
-4. Update discoAnt_params.txt with - path to FASTA folder and discoAnt folder paths
-5. When running the pipeline for the first time - ```bash discoAnt_setup.sh```
+3. When running the pipeline for the first time - ```bash discoAnt_setup.sh```
+4. Once the setup/download is complete, run the test script - 
+  ```conda activate discoAnt.env```
+  ```bash discoAnt_v2_SIRV.sh```
+5. Update discoAnt_params.txt with Gene info and paths to relevant folders before running the workflow with the data set of your choice
+
 
 #### Refer to the sample submission scripts for running the pipeline on a HPC cluster.
 
