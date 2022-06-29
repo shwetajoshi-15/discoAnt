@@ -1,6 +1,6 @@
 # discoAnt
 - version 28062022
-tested on conda v4.12.0
+- tested on conda v4.12.0
 
 ## Prepare FASTA files in a folder
 All the sample files should be in FASTA format (.fa)
