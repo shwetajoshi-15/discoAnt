@@ -1,6 +1,6 @@
 # discoAnt
-- version 04052022
-- bambu v2.2.0
+- version 28062022
+- bambu v2.0.0
 - SQANTI3 v4.2
 
 ## Prepare FASTA files in a folder
