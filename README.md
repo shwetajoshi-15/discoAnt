@@ -10,7 +10,8 @@ All the sample files should be in FASTA format (.fa)
 
 1. git clone repository
 2. cd discoAnt
-3. When running the pipeline for the first time - ```bash discoAnt_setup.sh```
+3. When running the pipeline for the first time - \
+  ```bash discoAnt_setup.sh```
 4. Once the setup/download is complete, run the test script - \
   ```conda activate discoAnt.env``` \
   ```bash discoAnt_v2_SIRV.sh```
