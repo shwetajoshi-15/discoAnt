@@ -1,5 +1,5 @@
 # discoAnt
-- version 28062022
+- version 07072022
 - tested on conda v4.12.0
 
 ## Prepare FASTA files in a folder
