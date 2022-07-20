@@ -12,6 +12,6 @@
 #time in days-hours:mins:sec
 #SBATCH --time=0-02:0:00
 
-source activate discoAnt.env
+source activate discoAnt
 
-bash ../discoAnt_v2.sh
+bash /path/to/discoAnt_v2.sh
