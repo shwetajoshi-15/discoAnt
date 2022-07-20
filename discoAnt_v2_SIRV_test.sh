@@ -14,7 +14,7 @@
 
 
 
-source discoAnt_params.txt
+source discoAnt_params_SIRV.txt
 
 export PYTHONPATH="$PROGRAMS/cDNA_Cupcake/sequence/:$PYTHONPATH"
 
