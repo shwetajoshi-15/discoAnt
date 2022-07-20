@@ -14,7 +14,7 @@ All the sample files should be in FASTA format (.fa)
   ```bash discoAnt_setup.sh```
   
 3. Running a test script to check installation \
-  ```conda activate discoAnt.env``` \
+  ```conda activate discoAnt``` \
   ```bash discoAnt_v2_SIRV_test.sh```
   
 4. Update discoAnt_params.txt with gene info and paths to relevant folders before running the workflow with the data set of your choice \
