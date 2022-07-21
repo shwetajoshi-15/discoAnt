@@ -2,10 +2,6 @@
 - version 21072022
 - tested on conda v4.12.0
 
-## Workflow
-
-![This is an image](https://github.com/shwetajoshi-15/discoAnt/blob/main/discoAnt_workflow.png)
-
 ## Prepare FASTA files in a folder
 All the sample files (pass-reads only) should be in FASTA format (.fa)
 
@@ -36,6 +32,9 @@ All the sample files (pass-reads only) should be in FASTA format (.fa)
 
 #### Refer to the sample submission scripts for running the pipeline on a HPC cluster.
 
+## Workflow
+
+![This is an image](https://github.com/shwetajoshi-15/discoAnt/blob/main/discoAnt_workflow.png)
 
 
 
