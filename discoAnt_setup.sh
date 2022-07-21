@@ -10,14 +10,9 @@ mkdir -p $PROGRAMS
 wget https://github.com/ConesaLab/SQANTI3/archive/refs/tags/v4.2.tar.gz -P $PROGRAMS/
 tar -xzf v4.2.tar.gz
 wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred -P $PROGRAMS/SQANTI3-4.2/utilities/
-chmod +x $PROGRAMS/SQANTI3-4.2/utilities/gtfToGenePred 
 
 cd $PROGRAMS
 git clone https://github.com/Magdoll/cDNA_Cupcake.git
-cd cDNA_Cupcake
-python setup.py build
-python setup.py install
-cd ../../
 
 
 ## GENCODE genome reference and annotation
