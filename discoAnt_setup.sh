@@ -8,7 +8,7 @@ conda env create -f discoAnt.yml
 mkdir -p $PROGRAMS
 
 wget https://github.com/ConesaLab/SQANTI3/archive/refs/tags/v4.2.tar.gz -P $PROGRAMS/
-tar -xvf v4.2.tar.gz
+tar -xzf v4.2.tar.gz
 wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred -P $PROGRAMS/SQANTI3-4.2/utilities/
 chmod +x $PROGRAMS/SQANTI3-4.2/utilities/gtfToGenePred 
 
