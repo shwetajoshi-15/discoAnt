@@ -2,6 +2,10 @@
 - version 21072022
 - tested on conda v4.12.0
 
+## Workflow
+
+![This is an image]
+
 ## Prepare FASTA files in a folder
 All the sample files (pass-reads only) should be in FASTA format (.fa)
 
