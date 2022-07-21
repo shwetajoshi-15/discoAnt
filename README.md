@@ -14,14 +14,11 @@ All the sample files should be in FASTA format (.fa)
   ```bash discoAnt_setup.sh```
 
 3. Setting up programs for SQANTI3
-
   ```conda activate discoAnt```
-
   ```chmod +x programs/SQANTI3-4.2/utilities/gtfToGenePred``` \ 
   ```cd programs/cDNA_Cupcake``` \
   ```python setup.py build``` \
-  ```python setup.py install```
-  
+  ```python setup.py install``` \
   ```conda deactivate```
 
   
