@@ -3,7 +3,7 @@
 - tested on conda v4.12.0
 
 ## Prepare FASTA files in a folder
-All the sample files should be in FASTA format (.fa)
+All the sample files (pass-reads only) should be in FASTA format (.fa)
 
 ## Setting up discoAnt
 
