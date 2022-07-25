@@ -96,7 +96,7 @@ gffcompare -r $REF_HG38/gencode.v35.annotation.gtf \
 
 python $PROGRAMS/SQANTI3-4.2/sqanti3_qc.py \
 $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf \
-$REF_HG38/gencode.v38.annotation.gtf $REF_HG38/GRCh38.p13.genome_edit.fa \
+$REF_HG38/gencode.v35.annotation.gtf $REF_HG38/GRCh38.p13.genome_edit.fa \
 --cage_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
 --polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt \
 -d $RESULTS/"$GENE"/sqanti -o $GENE --report skip
