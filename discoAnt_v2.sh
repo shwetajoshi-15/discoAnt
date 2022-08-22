@@ -65,6 +65,12 @@ cat $RESULTS/"$GENE"/bambu/counts_transcript.txt | grep "$GENE_ID" | awk '{ if (
 cat $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1.txt | awk '{ print $1 }' > $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1_transcript.txt
 cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -wf $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1_transcript.txt > $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf
 
+## Editing filtered GTF and counts file for isomix compatibility
+
+sed 's/tx./tx/g' $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf > $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1_isomix.gtf
+cat $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1.txt | sed 's/tx./tx/g' - | awk '{ print $1"\t"$3}' > $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1_isomix.txt
+
+
 ##########                                                               ##########
 ########## 2.b. Creating a transcriptome based on the bambu transcripts  ##########
 ##########                                                               ##########
