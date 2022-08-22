@@ -68,7 +68,7 @@ cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -wf $RESULTS/"$GENE"/
 ## Editing filtered GTF and counts file for isomix compatibility
 
 sed 's/tx./tx/g' $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1.gtf > $RESULTS/"$GENE"/bambu/extended_annotations_"$GENE_ID"_count_1_isomix.gtf
-cat $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1.txt | sed 's/tx./tx/g' - | awk '{ print $1"\t"$3}' > $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1_isomix.txt
+cat $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $RESULTS/"$GENE"/bambu/counts_transcript_"$GENE_ID"_count_1_isomix.txt
 
 
 ##########                                                               ##########
