@@ -19,15 +19,15 @@ git clone https://github.com/Magdoll/cDNA_Cupcake.git
 
 mkdir -p $REF_HG38
 
-        wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_34/GRCh38.p13.genome.fa.gz -P $REF_HG38/
-        wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_35/gencode.v35.annotation.gtf.gz -P $REF_HG38/
+        wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/GRCh38.primary_assembly.genome.fa.gz -P $REF_HG38/
+        wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/gencode.v41.annotation.gtf.gz -P $REF_HG38/
 
 ## Editing the reference and annotation files
 
-        gunzip $REF_HG38/GRCh38.p13.genome.fa.gz
-        gunzip $REF_HG38/gencode.v35.annotation.gtf.gz
+        gunzip $REF_HG38/GRCh38.primary_assembly.genome.fa.gz
+        gunzip $REF_HG38/gencode.v41.annotation.gtf.gz
 
-        cut -d " " -f 1 $REF_HG38/GRCh38.p13.genome.fa > $REF_HG38/GRCh38.p13.genome_edit.fa
+        cut -d " " -f 1 $REF_HG38/GRCh38.primary_assembly.genome.fa > $REF_HG38/GRCh38.primary_assembly.genome_edit.fa
 
 ## Downlaoding reference files for SQANTI3 annotation
 
