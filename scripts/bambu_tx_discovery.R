@@ -32,3 +32,9 @@ bambuAnnotations <- prepareAnnotations(gtf.file)
 se <- bambu(reads = test.bam, annotations = bambuAnnotations, genome = fa.file, opt.discovery = list(max.txNDR=1, min.readfractionByGene=0.01))
 
 writeBambuOutput(se, opt$output_dir)
+
+UC <- assays(se)$uniqueCounts
+CPM <- assays(se)$CPM
+
+write.table(UC, file.path(opt$output_dir, "uniqueCounts.txt"), sep = "\t")
+write.table(CPM, file.path(opt$output_dir, "CPM.txt"), sep = "\t")
