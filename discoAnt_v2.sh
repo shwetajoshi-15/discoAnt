@@ -39,7 +39,7 @@ echo "minimap2 - Mapping fasta files to genome"
         base=$(basename $filename .fa)
         echo "On sample : $base"
 
-        minimap2 -ax splice --splice-flank=no $REF_HG38/GRCh38.p13.genome_edit.fa $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
+        minimap2 -ax splice --splice-flank=yes $REF_HG38/GRCh38.p13.genome_edit.fa $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
         samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
         samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
         done
