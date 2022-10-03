@@ -26,7 +26,7 @@ CPM_threshold=1
 primer_site_based_filter=
 
 ## Primer coordinates
-chr=chr5
+chr=
 F1_start=
 F1_end=
 R1_start=
