@@ -14,4 +14,4 @@
 
 source activate discoAnt
 
-bash /path/to/discoAnt_v2.sh
+bash /path/to/discoAnt_v2.1.sh
