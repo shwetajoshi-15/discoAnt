@@ -38,7 +38,7 @@ gtf.file <- (opt$annotation)
 
 bambuAnnotations <- prepareAnnotations(gtf.file)
 
-se <- bambu(reads = test.bam, annotations = bambuAnnotations, genome = fa.file, opt.discovery = list(max.txNDR=1, min.readfractionByGene=opt$rfbg))
+se <- bambu(reads = test.bam, annotations = bambuAnnotations, genome = fa.file, opt.discovery = list(max.txNDR=1, min.readfractionByGene=opt$rfbg, fitReadClassModel = FALSE))
 
 writeBambuOutput(se, opt$output_dir)
 
