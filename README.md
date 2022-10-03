@@ -27,8 +27,8 @@ All the sample files (pass-reads only) should be in FASTA format (.fa)
   ```bash discoAnt_v2_SIRV_test.sh```
   
 4. Update discoAnt_params.txt with gene info and paths to relevant folders before running the workflow with the data set of your choice \
-  ```conda activate discoAnt.env``` \
-  ```bash discoAnt_v2.sh```
+  ```conda activate discoAnt``` \
+  ```bash discoAnt_v2.1.sh```
 
 #### Refer to the sample submission scripts for running the pipeline on a HPC cluster.
 
