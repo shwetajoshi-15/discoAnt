@@ -17,7 +17,7 @@ mkdir -p $RESULTS/"$GENE"/metagene_salmon
 Rscript $SCRIPTS/bambu_tx_discovery_1.R -b $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam \
 -f $REF_HG38/GRCh38.primary_assembly.genome_edit.fa \
 -t $REF_HG38/gencode.v41.annotation.gtf \
--r 0.01 \
+-r 0.001 \
 -o $RESULTS/"$GENE"/bambu
 
 awk 'FNR==NR{s+=$2;next;} {printf "%s\t%s\t%s%%\n",$1,$2,100*$2/s}' $RESULTS/"$GENE"/bambu/uniqueCounts.txt $RESULTS/"$GENE"/bambu/uniqueCounts.txt > $RESULTS/"$GENE"/bambu/uniqueCounts_perc.txt
