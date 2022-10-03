@@ -12,7 +12,6 @@ mkdir -p $RESULTS/"$GENE"/minimap2
 mkdir -p $RESULTS/"$GENE"/bambu
 mkdir -p $RESULTS/"$GENE"/metagene_salmon
 mkdir -p $RESULTS/"$GENE"/filtered_transcripts
-mkdir -p $RESULTS/"$GENE"/discarded_transcripts
 
 ##########                                                  ##########
 ########## 0. Counting the number of reads and downsampling ##########
@@ -255,6 +254,7 @@ echo "Extracting transcripts (names) that overlap the primer window and meet the
 echo "Filtering transcripts based on primer window overlap and CPM threshold"
 
 	cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -wf $RESULTS/"$GENE"/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt > $RESULTS/"$GENE"/filtered_transcripts/extended_annotations_primer_overlap_CPM_more_than_1.gtf
+	cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -v -wf $RESULTS/"$GENE"/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt > $RESULTS/"$GENE"/discarded_transcripts/extended_annotations_primer_overlap_CPM_more_than_1_discarded.gtf
 
 	# Removing temporary files
 	rm $RESULTS/"$GENE"/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt
@@ -280,7 +280,8 @@ echo "Extracting transcripts (names) that meet the CPM threshold"
 echo "Filtering transcripts based on CPM threshold"
 
 	cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -wf $RESULTS/"$GENE"/filtered_transcripts/transcripts_CPM_more_than_1_list_tmp.txt > $RESULTS/"$GENE"/bambu/extended_annotations_CPM_more_than_1.gtf
-
+	cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -v -wf $RESULTS/"$GENE"/filtered_transcripts/transcripts_CPM_more_than_1_list_tmp.txt > $RESULTS/"$GENE"/discarded_transcripts/extended_annotations_CPM_more_than_1_discarded.gtf
+	
 	# Removing temporary files 
 	rm $RESULTS/"$GENE"/filtered_transcripts/transcripts_CPM_more_than_1_list_tmp.txt
 
@@ -333,7 +334,8 @@ echo "Extracting transcripts (names) that overlap the primer window and meet the
 echo "Filtering transcripts based on primer window overlap and CPM threshold"
 
 	cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -wf $RESULTS/"$GENE"/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt > $RESULTS/"$GENE"/filtered_transcripts/extended_annotations_primer_overlap_CPM_more_than_1.gtf
-
+	cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -v -wf $RESULTS/"$GENE"/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt > $RESULTS/"$GENE"/discarded_transcripts/extended_annotations_primer_overlap_CPM_more_than_1_discarded.gtf
+	
 	# Removing temporary files
 	rm $RESULTS/"$GENE"/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt
 
@@ -358,6 +360,7 @@ echo "Extracting transcripts (names) that meet the CPM threshold"
 echo "Filtering transcripts based on CPM threshold"
 
 	cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -wf $RESULTS/"$GENE"/filtered_transcripts/transcripts_CPM_more_than_1_list_tmp.txt > $RESULTS/"$GENE"/bambu/extended_annotations_CPM_more_than_1.gtf
+	cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -v -wf $RESULTS/"$GENE"/filtered_transcripts/transcripts_CPM_more_than_1_list_tmp.txt > $RESULTS/"$GENE"/discarded_transcripts/extended_annotations_CPM_more_than_1_discarded.gtf
 
 	# Removing temporary files 
 	rm $RESULTS/"$GENE"/filtered_transcripts/transcripts_CPM_more_than_1_list_tmp.txt
