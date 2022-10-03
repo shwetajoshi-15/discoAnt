@@ -2,6 +2,7 @@
 
 source discoAnt_params.txt
 conda env create -f discoAnt.yml
+conda activate discoAnt
 
 ## Installing programs
 
@@ -40,6 +41,7 @@ mkdir -p $REF_HG38
         
         sed -i 's/^/chr/' $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed
         
+ conda deactivate
 
         
 
