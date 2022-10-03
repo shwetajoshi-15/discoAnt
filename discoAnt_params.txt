@@ -1,9 +1,33 @@
-GENE=GRIA1
-GENE_ID=ENSG00000155511
+## Enter gene/spike-in name (e.g. GRIA1)
+GENE=
 
+## Folders
 
+## Location of folder containing FASTA files
 FASTA=fasta
-RESULTS=results
-PROGRAMS=programs
-SCRIPTS=scripts
-REF_HG38=ref_hg38
+
+## Location of discoAnt folder
+RESULTS=discoAnt/results
+PROGRAMS=discoAnt/programs
+SCRIPTS=discoAnt/scripts
+REF_HG38=discoAnt/ref_hg38
+
+## Analysis parameters
+## set downsampling to TRUE/FALSE
+downsampling=
+reads_per_barcode_post_downsampling=
+readFraction_for_bambu=
+
+## CPM_based_filter is set to TRUE by default.
+## Recommended threshold value is 1.
+
+CPM_threshold=1
+
+primer_site_based_filter=
+
+## Primer coordinates
+chr=chr5
+F1_start=
+F1_end=
+R1_start=
+R1_end=
