@@ -7,9 +7,10 @@ echo "Making folders"
 
 mkdir -p $RESULTS
 mkdir -p $RESULTS/"$GENE"
-mkdir -p $RESULTS/"$GENE"/minimap2
 mkdir -p $RESULTS/"$GENE"/bambu
-mkdir -p $RESULTS/"$GENE"/bambu_metagene_salmon
+mkdir -p $RESULTS/"$GENE"/filtered_transcripts
+mkdir -p $RESULTS/"$GENE"/metagene_salmon
+
 
  echo "Reference annotation: hg38 and GENCODE v41"
                         
@@ -50,7 +51,7 @@ echo "Extracting transcripts (names) that overlap the primer window and meet the
 echo "Filtering transcripts based on primer window overlap and CPM threshold"
 
 	cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -wf $RESULTS/"$GENE"/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt > $RESULTS/"$GENE"/filtered_transcripts/extended_annotations_primer_overlap_CPM_more_than_1.gtf
-	cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -v -wf $RESULTS/"$GENE"/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt > $RESULTS/"$GENE"/discarded_transcripts/extended_annotations_primer_overlap_CPM_more_than_1_discarded.gtf
+#	cat $RESULTS/"$GENE"/bambu/extended_annotations.gtf | grep -v -wf $RESULTS/"$GENE"/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt > $RESULTS/"$GENE"/discarded_transcripts/extended_annotations_primer_overlap_CPM_more_than_1_discarded.gtf
 
 	# Removing temporary files
 	rm $RESULTS/"$GENE"/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt
