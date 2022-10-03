@@ -1,5 +1,6 @@
 name: discoAnt
 channels:
+  - anaconda
   - bioconda
   - defaults
   - conda-forge
@@ -8,6 +9,8 @@ dependencies:
   - _openmp_mutex=4.5=2_kmp_llvm
   - _r-mutex=1.0.1=anacondar_1
   - _r-xgboost-mutex=2.0=cpu_0
+  - bbmap=38.98=h5c4e2a8_1
+  - bedtools=2.30.0=h468198e_3
   - binutils_impl_linux-64=2.36.1=h193b22a_2
   - binutils_linux-64=2.36=hf3e587d_10
   - bioconductor-annotationdbi=1.56.1=r41hdfd78af_0
@@ -22,7 +25,7 @@ dependencies:
   - bioconductor-bsgenome=1.62.0=r41hdfd78af_0
   - bioconductor-delayedarray=0.20.0=r41h5c21468_1
   - bioconductor-genomeinfodb=1.30.0=r41hdfd78af_0
-  - bioconductor-genomeinfodbdata=1.2.7=r41hdfd78af_1
+  - bioconductor-genomeinfodbdata=1.2.7=r41hdfd78af_2
   - bioconductor-genomicalignments=1.30.0=r41h5c21468_1
   - bioconductor-genomicfeatures=1.46.1=r41hdfd78af_0
   - bioconductor-genomicranges=1.46.1=r41h5c21468_0
@@ -42,10 +45,11 @@ dependencies:
   - bwidget=1.9.14=ha770c72_1
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2022.4.26=h06a4308_0
+  - ca-certificates=2022.07.19=h06a4308_0
   - cairo=1.16.0=ha61ee94_1011
   - curl=7.83.1=h2283fc2_0
   - cython=0.29.30=py310h6a678d5_0
+  - dbus=1.13.18=hb2f20db_0
   - expat=2.4.8=h27087fc_0
   - font-ttf-dejavu-sans-mono=2.37=hd3eb1b0_0
   - font-ttf-inconsolata=2.001=hcb22688_0
@@ -118,8 +122,10 @@ dependencies:
   - numpy=1.22.3=py310h4f1e569_0
   - numpy-base=1.22.3=py310hf2716ce_0
   - openblas=0.3.20=pthreads_h320a7e8_0
-  - openssl=3.0.5=h166bdaf_0
+  - openjdk=11.0.13=h87a67e3_0
+  - openssl=3.0.5=h166bdaf_2
   - pango=1.50.7=h05da053_0
+  - pbzip2=1.1.13=0
   - pcre=8.45=h9c3ff4c_0
   - pcre2=10.37=h032f7d1_0
   - pip=22.1.2=pyhd8ed1ab_0
@@ -228,6 +234,7 @@ dependencies:
   - pip:
     - bcbio-gff==0.6.9
     - bx-python==0.8.13
+    - cupcake==28.0.0
     - joblib==1.1.0
     - pandas==1.4.3
     - pybedtools==0.9.0
