@@ -1,9 +1,0 @@
-GENE=SIRV5
-GENE_ID=SIRV5
-
-
-FASTA=fasta
-RESULTS=results
-PROGRAMS=programs
-SCRIPTS=scripts
-REF_HG38=ref_hg38
