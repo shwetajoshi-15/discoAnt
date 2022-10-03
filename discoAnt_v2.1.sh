@@ -12,6 +12,7 @@ mkdir -p $RESULTS/"$GENE"/minimap2
 mkdir -p $RESULTS/"$GENE"/bambu
 mkdir -p $RESULTS/"$GENE"/metagene_salmon
 mkdir -p $RESULTS/"$GENE"/filtered_transcripts
+mkdir -p $RESULTS/"$GENE"/discarded_transcripts
 
 ##########                                                  ##########
 ########## 0. Counting the number of reads and downsampling ##########
@@ -107,11 +108,11 @@ echo "Aligning pass reads to a reference SIRVome"
 	samtools view -h -F 2308 opt$output_dir/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
 	done
 
-samtools merge -f $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam $RESULTS/"$GENE"/minimap2/*_pri_sorted.bam
-samtools merge -f $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam $RESULTS/"$GENE"/minimap2/*_sorted.bam
+	samtools merge -f $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam $RESULTS/"$GENE"/minimap2/*_pri_sorted.bam
+	samtools merge -f $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam $RESULTS/"$GENE"/minimap2/*_sorted.bam
 
-samtools index $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam
-samtools index $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam
+	samtools index $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam
+	samtools index $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam
 
 fi
 
