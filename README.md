@@ -34,7 +34,7 @@ All the sample files (pass-reads only) should be in FASTA format (.fa)
 
 ## Workflow
 
-![This is an image](https://github.com/shwetajoshi-15/discoAnt/blob/main/discoAnt_workflow.png)
+![This is an image](https://github.com/shwetajoshi-15/discoAnt/blob/discoAnt_2022/workflow.png)
 
 
 
