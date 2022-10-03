@@ -1,9 +1,22 @@
 GENE=GRIA1
-GENE_ID=ENSG00000155511
 
+## Paths to folders
 
-FASTA=fasta
-RESULTS=results
-PROGRAMS=programs
-SCRIPTS=scripts
-REF_HG38=ref_hg38
+FASTA=discoAnt/fasta/GRIA1
+RESULTS=discoAnt/results
+PROGRAMS=discoAnt/programs
+SCRIPTS=discoAnt/scripts
+REF_HG38=discoAnt/ref_hg38
+
+## CPM_based_filter is set to TRUE by default.
+## Recommended threshold value is 1.
+
+CPM_threshold=1
+
+chr=chr5
+
+## Primer coordinates
+F1_start=153490844
+F1_end=153490864
+R1_start=153811227
+R1_end=153811247
