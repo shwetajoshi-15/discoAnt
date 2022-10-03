@@ -7,13 +7,13 @@ All the sample files (pass-reads only) should be in FASTA format (.fa)
 
 ## Setting up discoAnt
 
-1. Downloading the workflow with ```git clone```
+1. Download the workflow with ```git clone```
   
-2. Downloading relevant reference file and creating a conda environment \
+2. Download relevant reference file and create a conda environment \
   ```cd discoAnt``` \
   ```bash discoAnt_setup.sh```
 
-3. Setting up programs for SQANTI3 \
+3. Set up programs for SQANTI3 \
   ```conda activate discoAnt``` \
   ```chmod +x programs/SQANTI3-4.2/utilities/gtfToGenePred``` \
   ```cd programs/cDNA_Cupcake``` \
@@ -21,8 +21,7 @@ All the sample files (pass-reads only) should be in FASTA format (.fa)
   ```python setup.py install``` \
   ```conda deactivate```
 
-  
-3. Running a test script to check installation \
+3. Run a test script to check installation \
   ```conda activate discoAnt``` \
   ```bash discoAnt_v2_SIRV_test.sh```
   
