@@ -1,0 +1,7 @@
+## Extracting protein coding, risk gene (20 genes) features from gencode v41
+  ## exons
+cat gencode.v41.annotation.gtf | grep -wf gene_list.txt | grep "protein_coding" | awk '{ if ($3 == "exon") print $1"\t"$4"\t"$5"\t"$16"\t"$24 }' | sed 's/"//g' | sed 's/;//g' | sort | uniq > gencode_v41_exon_protein_coding_gene_list.bed
+  ## trnascripts
+cat gencode.v41.annotation.gtf | grep -wf gene_list.txt | grep "protein_coding" | awk '{ if ($3 == "transcript") print $1"\t"$4"\t"$5"\t"$12 }' | sed 's/"//g' | sed 's/;//g' | sort | uniq  > gencode_v41_transcript_protein_coding_gene_list.be
+
+cat gencode_v41_introns_protein_coding_gene_list.bed | awk '{ print $4"\t"$5"\t"$3-$2 }' > gencode_v41_introns_length_protein_coding_gene_list.txt
