@@ -2,6 +2,12 @@
 - version 07082022
 - tested on conda v4.12.0
 
+## Updates in v2.1
+- optional primer site based filter
+- report: includes statistics for the FASTA files and number of known and novel transcripts
+- edits to the transcript file output for compatibility with IsoMix
+
+
 ## Prepare FASTA files in a folder
 All the sample files (pass-reads only) should be in FASTA format (.fa)
 
