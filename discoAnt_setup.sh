@@ -4,15 +4,21 @@ source discoAnt_params.txt
 conda env create -f discoAnt.yml
 
 ## Installing programs
-
 mkdir -p $PROGRAMS
 
 wget https://github.com/ConesaLab/SQANTI3/archive/refs/tags/v4.2.tar.gz -P $PROGRAMS/
-tar -xzf $PROGRAMS/v4.2.tar.gz
+tar -xzf $PROGRAMS/v4.2.tar.gz -C $PROGRAMS
 wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred -P $PROGRAMS/SQANTI3-4.2/utilities/
+chmod +x $PROGRAMS/SQANTI3-4.2/utilities/gtfToGenePred
 
+echo "Installing cDNA_Cupcake..."
+conda activate discoAnt
 cd $PROGRAMS
-git clone https://github.com/Magdoll/cDNA_Cupcake.git
+git clone https://github.com/youyupei/cDNA_Cupcake.git
+cd cDNA_Cupcake
+python setup.py build
+python setup.py install
+conda deactivate
 
 
 ## GENCODE genome reference and annotation
