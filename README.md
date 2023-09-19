@@ -7,7 +7,6 @@
 - report: includes statistics for the FASTA files and number of known and novel transcripts
 - edits to the transcript file output for compatibility with IsoMix
 
-
 ## Prepare FASTA files in a folder
 All the sample files (pass-reads only) should be in FASTA format (.fa)
 
@@ -18,16 +17,7 @@ All the sample files (pass-reads only) should be in FASTA format (.fa)
 2. Downloading relevant reference file and creating a conda environment \
   ```cd discoAnt``` \
   ```bash discoAnt_setup.sh```
-
-3. Setting up programs for SQANTI3 \
-  ```conda activate discoAnt``` \
-  ```chmod +x programs/SQANTI3-4.2/utilities/gtfToGenePred``` \
-  ```cd programs/cDNA_Cupcake``` \
-  ```python setup.py build``` \
-  ```python setup.py install``` \
-  ```conda deactivate```
-
-  
+ 
 3. Running a test script to check installation \
   ```conda activate discoAnt``` \
   ```bash discoAnt_v2_SIRV_test.sh```
