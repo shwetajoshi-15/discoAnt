@@ -17,7 +17,7 @@
 source discoAnt_params_SIRV.txt
 
 export PYTHONPATH="$PROGRAMS/cDNA_Cupcake/sequence/:$PYTHONPATH"
-
+export PYTHONPATH="$PROGRAMS/cDNA_Cupcake/:$PYTHONPATH"
 echo "Making folders"
 
 mkdir -p $RESULTS

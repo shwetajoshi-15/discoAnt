@@ -4,6 +4,7 @@
 source discoAnt_params_v2.1.txt
 
 export PYTHONPATH="$PROGRAMS/cDNA_Cupcake/sequence/:$PYTHONPATH"
+export PYTHONPATH="$PROGRAMS/cDNA_Cupcake/:$PYTHONPATH"
 
 echo "Making folders"
 
