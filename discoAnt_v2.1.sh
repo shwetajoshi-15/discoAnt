@@ -284,10 +284,10 @@ echo "Annotating transcripts with gffcompare and SQANTI3"
 gffcompare -r $REF_HG38/gencode.v41.annotation.gtf \
 -o $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts_gffcomp $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts.gtf
 
-python $PROGRAMS/SQANTI3-4.2/sqanti3_qc.py \
+python $PROGRAMS/SQANTI3/sqanti3_qc.py \
 $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts.gtf \
 $REF_HG38/gencode.v41.annotation.gtf $REF_HG38/GRCh38.primary_assembly.genome_edit.fa \
---cage_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
+--CAGE_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
 --polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt \
 -d $RESULTS/"$GENE"/sqanti -o $GENE --report skip
 
