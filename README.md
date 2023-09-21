@@ -1,6 +1,5 @@
 # discoAnt
-- version 07082022
-- tested on conda v4.12.0
+- version 21092023
 
 ## Updates in v2.1
 - optional primer site based filter
