@@ -14,6 +14,7 @@ mkdir -p $RESULTS/"$GENE"/minimap2
 mkdir -p $RESULTS/"$GENE"/bambu
 mkdir -p $RESULTS/"$GENE"/metagene_salmon
 mkdir -p $RESULTS/"$GENE"/filtered_transcripts
+mkdir -p $RESULTS/"$GENE"/discarded_transcripts/
 
 ##########                                                  ##########
 ########## 0. Counting the number of reads and downsampling ##########
@@ -104,7 +105,7 @@ echo "Aligning downsampled pass reads to a reference genome"
 	base=$(basename $filename .fa)
 	echo "On sample : $base"
 
-	minimap2 -ax splice -G400k --splice-flank=yes $REF_HG38/GRCh38.primary_assembly.genome_edit.fa $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
+	minimap2 -ax splice -G400k --splice-flank=yes $REF_GENOME_FN $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
 	samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
 	samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
 	done
@@ -127,7 +128,7 @@ echo "Aligning pass reads to a reference genome"
 	base=$(basename $filename .fa)
 	echo "On sample : $base"
 
-	minimap2 -ax splice -G400k --splice-flank=yes $REF_HG38/GRCh38.primary_assembly.genome_edit.fa $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
+	minimap2 -ax splice -G400k --splice-flank=yes $REF_GENOME_FN $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
 	samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
 	samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
 	done
@@ -147,12 +148,11 @@ fi
 echo "Creating transcripts with bambu"
 
 	Rscript $SCRIPTS/bambu_tx_discovery.R -b $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam \
-	-f $REF_HG38/GRCh38.primary_assembly.genome_edit.fa \
-	-t $REF_HG38/gencode.v41.annotation.gtf \
+	-f $REF_GENOME_FN \
+	-t $ANNA_GTF \
 	-r $readFraction_for_bambu \
 	-o $RESULTS/"$GENE"/bambu
 
-fi
 
 awk 'FNR==NR{s+=$2;next;} {printf "%s\t%s\t%s%%\n",$1,$2,100*$2/s}' $RESULTS/"$GENE"/bambu/uniqueCounts.txt $RESULTS/"$GENE"/bambu/uniqueCounts.txt > $RESULTS/"$GENE"/bambu/uniqueCounts_perc.txt
 awk 'FNR==NR{s+=$2;next;} {printf "%s\t%s\t%s%%\n",$1,$2,100*$2/s}' $RESULTS/"$GENE"/bambu/CPM.txt $RESULTS/"$GENE"/bambu/CPM.txt > $RESULTS/"$GENE"/bambu/CPM_perc.txt
@@ -206,7 +206,7 @@ echo "Editing filtered GTF files for use with IsoMix"
 
 echo "Creating a metatranscriptome based on the filtered transcripts"
 
-	gffread -w $RESULTS/"$GENE"/filtered_transcripts/extended_annotations_filtered.fa -g $REF_HG38/GRCh38.primary_assembly.genome_edit.fa $RESULTS/"$GENE"/filtered_transcripts/extended_annotations_filtered.gtf
+	gffread -w $RESULTS/"$GENE"/filtered_transcripts/extended_annotations_filtered.fa -g $REF_GENOME_FN $RESULTS/"$GENE"/filtered_transcripts/extended_annotations_filtered.gtf
 	salmon index -t $RESULTS/"$GENE"/filtered_transcripts/extended_annotations_filtered.fa -i $RESULTS/"$GENE"/filtered_transcripts/extended_annotations_filtered -k 31
 
 else
@@ -232,7 +232,7 @@ echo "Editing filtered GTF files for use with IsoMix"
 
 echo "Creating a metatranscriptome based on the filtered transcripts"
 
-	gffread -w $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts.fa -g $REF_HG38/GRCh38.primary_assembly.genome_edit.fa $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts.gtf
+	gffread -w $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts.fa -g $REF_GENOME_FN $RESULTS/"$GENE"/bambu/extended_annotations_filtered.gtf
 	salmon index -t $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts.fa -i $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts -k 31
 
 echo "Creating metrics for the report"
@@ -271,7 +271,7 @@ echo "Quantifying transcripts (mapping based mode in salmon)"
 	echo "On sample : $base"
 
 	salmon quant -i $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts -l A -r $FASTA/$reads_per_barcode_post_downsampling/${base}.fa -o $RESULTS/"$GENE"/metagene_salmon/${base}
-
+	done
 fi
 
 
@@ -281,15 +281,15 @@ fi
 
 echo "Annotating transcripts with gffcompare and SQANTI3"
 
-gffcompare -r $REF_HG38/gencode.v41.annotation.gtf \
--o $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts_gffcomp $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts.gtf
+gffcompare -r $ANNA_GTF \
+-o $RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts_gffcomp $RESULTS/"$GENE"/bambu/extended_annotations_filtered.gtf
 
 python $PROGRAMS/SQANTI3/sqanti3_qc.py \
-$RESULTS/"$GENE"/filtered_transcripts/filtered_transcripts.gtf \
-$REF_HG38/gencode.v41.annotation.gtf $REF_HG38/GRCh38.primary_assembly.genome_edit.fa \
---CAGE_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
---polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt \
+$RESULTS/"$GENE"/bambu/extended_annotations_filtered.gtf \
+$ANNA_GTF $REF_GENOME_FN \
 -d $RESULTS/"$GENE"/sqanti -o $GENE --report skip
+#--CAGE_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
+#--polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt \
 
 
 ##########           ##########

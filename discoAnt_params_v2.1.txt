@@ -9,11 +9,13 @@ RESULTS=/path/to/discoAnt/results
 PROGRAMS=/path/to/discoAnt/programs
 SCRIPTS=/path/to/discoAnt/scripts
 REF_HG38=/path/to/discoAnt/ref_hg38
+REF_GENOME_FN=/path/to/reference_genome.fa
+ANNA_GTF=/path/to/annotation.gtf
 
 ## Analysis parameters
 
 ## downsampling to be set to TRUE or FALSE
-downsampling=TRUE
+downsampling=FALSE
 
 reads_per_barcode_post_downsampling=8000
 
@@ -33,4 +35,4 @@ chr=
 F1_start=
 F1_end=
 R1_start=
-R1_end=86864415
+R1_end=
