@@ -105,7 +105,7 @@ echo "Aligning downsampled pass reads to a reference genome"
 	base=$(basename $filename .fa)
 	echo "On sample : $base"
 
-	minimap2 -ax splice -G400k --splice-flank=yes $REF_GENOME_FN $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
+	minimap2 -ax splice -G400k --splice-flank=yes --eqx $REF_GENOME_FN $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
 	samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
 	samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
 	done
@@ -128,7 +128,7 @@ echo "Aligning pass reads to a reference genome"
 	base=$(basename $filename .fa)
 	echo "On sample : $base"
 
-	minimap2 -ax splice -G400k --splice-flank=yes $REF_GENOME_FN $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
+	minimap2 -ax splice -G400k --splice-flank=yes --eqx $REF_GENOME_FN $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
 	samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
 	samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
 	done
