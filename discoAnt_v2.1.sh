@@ -117,6 +117,7 @@ echo "Aligning downsampled pass reads to a reference genome"
 	minimap2 -ax splice -G400k --splice-flank=yes --eqx $REF_GENOME_FN $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
 	samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
 	samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
+	
 	done
 
 	samtools merge -f $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam $RESULTS/"$GENE"/minimap2/*_pri_sorted.bam
@@ -140,7 +141,6 @@ echo "Aligning pass reads to a reference genome"
 	minimap2 -ax splice -G400k --splice-flank=yes --eqx $REF_GENOME_FN $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
 	samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
 	samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
-	done
 
 	samtools merge -f $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam $RESULTS/"$GENE"/minimap2/*_pri_sorted.bam
 	samtools merge -f $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam $RESULTS/"$GENE"/minimap2/*_sorted.bam
@@ -148,6 +148,7 @@ echo "Aligning pass reads to a reference genome"
 	samtools index $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam
 	samtools index $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam
 
+	done
 fi
 
 ##########                                                       ##########
@@ -306,7 +307,7 @@ $ANNA_GTF $REF_GENOME_FN \
 ##########           ##########
 
 
-cat <<EOT >> $RESULTS/"$GENE"/discoAnt_report.txt
+cat << EOT >> $RESULTS/"$GENE"/discoAnt_report.txt
 `date`
 
 Number of barcodes: $num_of_barcodes
@@ -325,3 +326,5 @@ Known transcripts post filtering: $filtered_transcripts_known
 Novel transcrupts post filtering: $filtered_transcripts_novel
 
 EOT
+
+echo "discoAnt completed" 

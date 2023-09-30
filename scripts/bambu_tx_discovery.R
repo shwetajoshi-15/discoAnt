@@ -11,6 +11,8 @@ option_list = list(
  make_option(c("-t", "--annotation"), type="character", default=NULL,
      help="reference annotations gtf"),
  make_option(c("-o", "--output_dir"), type="character", default=NULL,
+     help="path to output directory"),
+make_option(c("-r", "--readFraction_for_bambu"), type="character", default=NULL,
      help="path to output directory")
 
 );
