@@ -107,14 +107,22 @@ rm $RESULTS/"$GENE"/no_of_reads_barcodewise_postdwnsmp_tmp.txt
 if [ "$downsampling" == TRUE ];
 then
 
-echo "Aligning downsampled pass reads to a reference genome"
+echo "Extracting chromossome from genome ref"
+
+samtools faidx "${REF_GENOME_FN}" "${chr}" > REF_GENOME_FN_chr.fa
+
+echo "Aligning pass reads to "${chr}""
 
 	for filename in $FASTA/*.fa
 	do
 	base=$(basename $filename .fa)
 	echo "On sample : $base"
 
-	minimap2 -ax splice -G400k --splice-flank=yes --eqx $REF_GENOME_FN $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
+	if [ -z "$genome_size" ]; then
+    genome_size="200k" # Set to the default value if genome_size is empty
+	fi
+
+	minimap2 -ax splice -G"${genome_size}"k --splice-flank=yes --eqx REF_GENOME_FN_chr.fa $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
 	samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
 	samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
 	
@@ -131,25 +139,35 @@ fi
 if [ "$downsampling" == FALSE ];
 then
 
-echo "Aligning pass reads to a reference genome"
+echo "Extracting chromossome from genome ref"
+
+samtools faidx "${REF_GENOME_FN}" "${chr}" > REF_GENOME_FN_chr.fa
+
+echo "Aligning pass reads to "${chr}""
 
 	for filename in $FASTA/*.fa
 	do
 	base=$(basename $filename .fa)
 	echo "On sample : $base"
 
-	minimap2 -ax splice -G400k --splice-flank=yes --eqx $REF_GENOME_FN $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
+	if [ -z "$genome_size" ]; then
+    genome_size="200k" # Set to the default value if genome_size is empty
+	fi
+
+	minimap2 -ax splice -G"${genome_size}"k --splice-flank=yes --eqx REF_GENOME_FN_chr.fa $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
 	samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
 	samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
+
+	done
 
 	samtools merge -f $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam $RESULTS/"$GENE"/minimap2/*_pri_sorted.bam
 	samtools merge -f $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam $RESULTS/"$GENE"/minimap2/*_sorted.bam
 
 	samtools index $RESULTS/"$GENE"/minimap2/"$GENE"_pri_merged.bam
 	samtools index $RESULTS/"$GENE"/minimap2/"$GENE"_merged.bam
-
-	done
 fi
+
+rm REF_GENOME_FN_chr.fa
 
 ##########                                                       ##########
 ########## 2.a. Correcting and collapsing transcripts with bambu ##########
@@ -298,8 +316,8 @@ python $PROGRAMS/SQANTI3/sqanti3_qc.py \
 $RESULTS/"$GENE"/bambu/extended_annotations_filtered.gtf \
 $ANNA_GTF $REF_GENOME_FN \
 -d $RESULTS/"$GENE"/sqanti -o $GENE --report skip
-#--CAGE_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
-#--polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt \
+--CAGE_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
+--polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt \
 
 
 ##########           ##########
