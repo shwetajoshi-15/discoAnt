@@ -118,11 +118,11 @@ echo "Aligning pass reads to "${chr}""
 	base=$(basename $filename .fa)
 	echo "On sample : $base"
 
-	if [ -z "$genome_size" ]; then
-    genome_size="200k" # Set to the default value if genome_size is empty
+	if [ -z "$max_intron_length" ]; then
+    max_intron_length="200k" # Set to the default value if max_intron_length is empty
 	fi
 
-	minimap2 -ax splice -G"${genome_size}"k --splice-flank=yes --eqx REF_GENOME_FN_chr.fa $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
+	minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx REF_GENOME_FN_chr.fa $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
 	samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
 	samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
 	
@@ -150,11 +150,12 @@ echo "Aligning pass reads to "${chr}""
 	base=$(basename $filename .fa)
 	echo "On sample : $base"
 
-	if [ -z "$genome_size" ]; then
-    genome_size="200k" # Set to the default value if genome_size is empty
+	if [ -z "$max_intron_length" ]; then
+    max_intron_length="200k" # Set to the default value if max_intron_length is empty
+	
 	fi
 
-	minimap2 -ax splice -G"${genome_size}"k --splice-flank=yes --eqx REF_GENOME_FN_chr.fa $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
+	minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx REF_GENOME_FN_chr.fa $FASTA/${base}.fa > $RESULTS/"$GENE"/minimap2/${base}.sam
 	samtools view -S -h -b $RESULTS/"$GENE"/minimap2/${base}.sam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_sorted.bam
 	samtools view -h -F 2308 $RESULTS/"$GENE"/minimap2/${base}_sorted.bam | samtools sort - > $RESULTS/"$GENE"/minimap2/${base}_pri_sorted.bam
 
@@ -315,9 +316,9 @@ gffcompare -r $ANNA_GTF \
 python $PROGRAMS/SQANTI3/sqanti3_qc.py \
 $RESULTS/"$GENE"/bambu/extended_annotations_filtered.gtf \
 $ANNA_GTF $REF_GENOME_FN \
--d $RESULTS/"$GENE"/sqanti -o $GENE --report skip
+-d $RESULTS/"$GENE"/sqanti -o $GENE --report skip \
 --CAGE_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
---polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt \
+--polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt
 
 
 ##########           ##########
@@ -345,4 +346,13 @@ Novel transcrupts post filtering: $filtered_transcripts_novel
 
 EOT
 
-echo "discoAnt completed" 
+##########                         ##########
+########## 4. Genrate count matrix ##########
+##########                         ##########
+
+echo "
+██████  ██ ███████  ██████  ██████   █████  ███    ██ ████████      ██████  ██████  ███    ███ ██████  ██      ███████ ████████ ███████ 
+██   ██ ██ ██      ██      ██    ██ ██   ██ ████   ██    ██        ██      ██    ██ ████  ████ ██   ██ ██      ██         ██    ██      
+██   ██ ██ ███████ ██      ██    ██ ███████ ██ ██  ██    ██        ██      ██    ██ ██ ████ ██ ██████  ██      █████      ██    █████   
+██   ██ ██      ██ ██      ██    ██ ██   ██ ██  ██ ██    ██        ██      ██    ██ ██  ██  ██ ██      ██      ██         ██    ██      
+██████  ██ ███████  ██████  ██████  ██   ██ ██   ████    ██         ██████  ██████  ██      ██ ██      ███████ ███████    ██    ███████ "                                                                                                                                        
