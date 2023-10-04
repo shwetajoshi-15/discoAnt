@@ -6,6 +6,7 @@ conda env create -f discoAnt.yml
 ## Installing programs
 mkdir programs
 
+cd progrmas
 git clone https://github.com/ConesaLab/SQANTI3.git
 chmod +x programs/SQANTI3/utilities/gtfToGenePred
 
