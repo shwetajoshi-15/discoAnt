@@ -80,7 +80,7 @@ function read_per_barcode_count_function() {
 		for filename in $FASTA/*.fa
 		do
 		base=$(basename $filename .fa)
-		echo "On sample: $base"
+		echo "On sample $base"
 
 		grep -c "^>" $FASTA/$reads_per_barcode_post_downsampling/${base}.fa >> $GENE/no_of_reads_barcodewise_postdwnsmp_tmp.txt
 
@@ -93,7 +93,7 @@ function read_per_barcode_count_function() {
 		for filename in $FASTA/*.fa
 		do
 		base=$(basename $filename .fa)
-		echo "On sample: $base"
+		echo "On sample $base"
 
 		grep -c "^>" $FASTA/${base}.fa >> $GENE/temp_files/no_of_reads_barcodewise_tmp.txt
 
@@ -120,7 +120,7 @@ function mapping_genome_function() {
 		for filename in $FASTA/*.fa
 		do
 		base=$(basename $filename .fa)
-		echo "On sample: $base"
+		echo "On sample $base"
 
 		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $GENE/minimap2/${base}.sam
 		samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
@@ -148,7 +148,7 @@ function mapping_genome_function() {
 		for filename in $FASTA/*.fa
 		do
 		base=$(basename $filename .fa)
-		echo "On sample: $base"
+		echo "On sample $base"
 
 		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/${base}.fa > $GENE/minimap2/${base}.sam
 		samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
@@ -271,7 +271,7 @@ function remapping_function() {
 		for filename in $FASTA/*.fa
 		do
 		base=$(basename $filename .fa)
-		echo "On sample: $base"
+		echo "On sample $base"
 
 		salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $FASTA/${base}.fa -o $GENE/metagene_salmon/${base}
 
@@ -284,7 +284,7 @@ function remapping_function() {
 		for filename in $FASTA/*.fa
 		do
 		base=$(basename $filename .fa)
-		echo "On sample: $base"
+		echo "On sample $base"
 
 		salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $FASTA/$reads_per_barcode_post_downsampling/${base}.fa -o $GENE/metagene_salmon/${base}
 		done
