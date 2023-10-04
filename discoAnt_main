@@ -364,7 +364,7 @@ mapping_genome_function > /dev/null 2>&1 &
 
 # suppressing output here breaks it for some reason...
 # if suppressed it breaks the primer_site_function part
-run_bambu_function > bambu_out.txt
+run_bambu_function
 
 ##########                                                               ##########
 ########## 2.b. Filtering bambu transcripts and creating a transcriptome ##########
