@@ -7,8 +7,9 @@
   
 2. Downloading relevant reference file and creating a conda environment \
   ```cd discoAnt``` \
-  ```bash scripts/discoAnt_setup.sh```
- 
+  ```bash scripts/discoAnt_setup```
+ *Note: depending on your operating system you may need to edit the setup file to either 'conda activate' or 'source activate'
+
 3. Running a test script to check installation \
   ```conda activate discoAnt``` \
   ```bash discoAnt_v2.1 sirv_test_data/SIRV_params.txt```
