@@ -3,12 +3,13 @@
 
 ## Setting up discoAnt
 
-1. Downloading the workflow with ```git clone```
+1. Download the workflow with ```git clone```
   
 2. Downloading relevant reference file and creating a conda environment \
   ```cd discoAnt``` \
   ```bash scripts/discoAnt_setup```
- *Note: depending on your operating system you may need to edit the setup file to either 'conda activate' or 'source activate'
+ 
+ Note: depending on your operating system you may need to edit the setup file to either 'conda activate' or 'source activate'
 
 3. Running a test script to check installation \
   ```conda activate discoAnt``` \
