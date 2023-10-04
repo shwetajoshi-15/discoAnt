@@ -1,5 +1,5 @@
 # run script from directory that contains 'metagene_salmon/' directory
-# script requires gene_id to add as a suffix for TXNAME​
+# script requires gene_id to add as a suffix for TXNAME
 # run as: Rscript: combine_salmon_quants.R [gene_id]
 options(dplyr.summarise.inform = FALSE)
 
@@ -7,9 +7,11 @@ args <- commandArgs(trailingOnly = TRUE)
 gene_id <- args[1]
 
 
+
 suppressWarnings({
 # get sample ids from within directory
 sample_names <- c(list.files("metagene_salmon"))
+#print(sample_names)
 
 import_quants_function <- function(sample_id) {
   # get paths of file to import
@@ -42,9 +44,11 @@ combined_counts$TXNAME <- rownames(combined_counts)
 # order df
 combined_counts <- combined_counts[, new_col_order]
 # remove rownames
-rownames(combined_counts) <- NULL
+#rownames(combined_counts) <- NULL
 
-# export file​
+
+
+# export file
 # change name
 write.csv(combined_counts, paste0(gene_id, "_discoAnt_counts.csv"), quote = FALSE, row.names = FALSE)
 #write.csv(combined_counts, paste0(out_path, "/", gene_id, "_discoAnt_counts.csv"), quote = FALSE, row.names = FALSE)

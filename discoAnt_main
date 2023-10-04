@@ -5,7 +5,7 @@ echo "discoAnt v2.1"
 # NOTES
 # multi-primer function doesn't work
 # SQANTI doesn't work on my computer (JG)
-# something wrong with R quants script, only outputs one sample, due to . in names?
+# make it so output prints to logs file not terminal
 
 
 # source parameters file
@@ -364,7 +364,7 @@ mapping_genome_function > /dev/null 2>&1 &
 
 # suppressing output here breaks it for some reason...
 # if suppressed it breaks the primer_site_function part
-run_bambu_function
+run_bambu_function > bambu_out.txt
 
 ##########                                                               ##########
 ########## 2.b. Filtering bambu transcripts and creating a transcriptome ##########
