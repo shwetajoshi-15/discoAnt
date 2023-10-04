@@ -1,5 +1,7 @@
 #/bin/bash!
 
+echo "discoAnt v2.1"
+
 # NOTES
 # multi-primer function doesn't work
 # SQANTI doesn't work on my computer (JG)
