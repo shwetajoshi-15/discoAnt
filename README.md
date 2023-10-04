@@ -1,25 +1,26 @@
 # discoAnt
-- version 04102023_JG
+- v04102023_JG
 
 ## Setting up discoAnt
 
-1. Download the workflow with ```git clone```
+1. Download the workflow with \
+   `git clone`
   
-2. Downloading relevant reference file and creating a conda environment \
-  ```cd discoAnt``` \
-  ```bash scripts/discoAnt_setup```
+3. Downloading relevant reference file and creating a conda environment \
+  `cd discoAnt` \
+  `bash scripts/discoAnt_setup`
  
  Note: depending on your operating system you may need to edit the setup file to either 'conda activate' or 'source activate'
 
 3. Running a test script to check installation \
-  ```conda activate discoAnt``` \
-  ```bash discoAnt_v2.1 sirv_test_data/SIRV_params.txt```
+  `conda activate discoAnt` \
+  `bash discoAnt_v2.1 sirv_test_data/SIRV_params.txt`
   
 4. Update discoAnt_params.txt with gene info and paths to relevant folders before running the workflow with the data set of your choice \
-  ```conda activate discoAnt.env``` \
-  ```bash discoAnt_v2.1 example_parameters.txt```
+  `conda activate discoAnt.env` \
+  `bash discoAnt_v2.1 example_parameters.txt`
 
-#### Refer to the sample submission scripts for running the pipeline on a HPC cluster.
+#### Refer to the sample submission scripts for running the pipeline on a HPC cluster
 
 ## Workflow
 
