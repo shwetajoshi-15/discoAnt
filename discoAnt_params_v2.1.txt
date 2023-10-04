@@ -17,7 +17,6 @@ ANNA_GTF="/path/to/annotation.gtf"
 RESULTS="/path/to/results"
 PROGRAMS="/path/to/programs"
 SCRIPTS="/path/to/scripts"
-REF_HG38="/path/to/ref_hg38"
 
 ## Analysis parameters
 

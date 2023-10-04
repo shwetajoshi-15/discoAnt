@@ -14,8 +14,8 @@ echo \
 
 #source /data/scratch/users/yairp/discoAnt/params/RFTN2_RIC.params.txt
 
-export PYTHONPATH="$PROGRAMS/cDNA_Cupcake/sequence/:$PYTHONPATH"
-export PYTHONPATH="$PROGRAMS/cDNA_Cupcake/:$PYTHONPATH"
+export PYTHONPATH="programs/cDNA_Cupcake/sequence/:$PYTHONPATH"
+export PYTHONPATH="programs/cDNA_Cupcake/:$PYTHONPATH"
 
 echo "Making folders"
 
@@ -326,12 +326,10 @@ gffcompare -r $ANNA_GTF_filt \
 mv $GENE/gffcomp.* $GENE/gffcomp_outs/ 
 
 
-python $PROGRAMS/SQANTI3/sqanti3_qc.py \
+python programs/SQANTI3/sqanti3_qc.py \
 	$GENE/${ENSG_ID}_discoAnt_isoforms.gtf \
 	$ANNA_GTF_filt $REF_GENOME_FN_filt \
 	-d $GENE/sqanti -o $GENE --report skip
-	
-	
 	#--CAGE_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
 	#--polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt
 

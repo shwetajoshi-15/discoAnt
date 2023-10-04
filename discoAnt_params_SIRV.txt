@@ -1,9 +1,38 @@
+## Gene Information
+
+ROOT_DIR=$(pwd)
+
 GENE=SIRV5
-GENE_ID=SIRV5
+chr=SIRV5
+ENSG_ID=SIRV5
+max_intron_length=   #null to run default
 
-
+## Paths to folders 
 FASTA=fasta
-RESULTS=results
-PROGRAMS=programs
-SCRIPTS=scripts
-REF_HG38=ref_hg38
+
+REF_GENOME_FN=$ROOT_DIR/ref_hg38/SIRV5_ref.fa
+ANNA_GTF=$ROOT_DIR/ref_hg38/SIRV5_ref.gtf
+SCRIPTS=$ROOT_DIR/scripts
+
+## Analysis parameters
+
+## downsampling to be set to TRUE or FALSE
+downsampling=FALSE
+
+reads_per_barcode_post_downsampling=8000
+
+## CPM_based_filter is set to TRUE by default.
+## Recommended threshold value is 1.
+
+CPM_threshold=1
+
+readFraction_for_bambu=0.001
+
+## primer site filter to be set to TRUE or FALSE
+primer_site_based_filter=FALSE
+
+## Primer coordinates
+F1_start=
+F1_end=
+R1_start=
+R1_end=

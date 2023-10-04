@@ -29,3 +29,5 @@ dependencies:
   - bioconductor-bambu
   - cython
   - scikit-learn
+  #- r-ggplot2
+  #- r-ggplotify
