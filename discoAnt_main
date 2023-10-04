@@ -294,7 +294,7 @@ function remapping_function() {
 function combine_quants_function() {
 	echo "Generating count matrix"
 	cd $GENE
-	Rscript $DA_PATH/scripts/combine_salmon_quants.R $ENSG_ID
+	Rscript $DA_PATH/scripts/combine_salmon_quants.R "$ENSG_ID"
 	cd ..
 }
 
