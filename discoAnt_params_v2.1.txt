@@ -1,17 +1,23 @@
 ## Gene Information
 
-GENE=
+#required 
+GENE=      
+ENSG_ID=
 chr=
+
+#optional 
 max_intron_length=   #null to run default
 
-## Paths to folders
-FASTA=/path/to/discoAnt/fasta/GRM3
-RESULTS=/path/to/discoAnt/results
-PROGRAMS=/path/to/discoAnt/programs
-SCRIPTS=/path/to/discoAnt/scripts
-REF_HG38=/path/to/discoAnt/ref_hg38
-REF_GENOME_FN=/path/to/reference_genome.fa
-ANNA_GTF=/path/to/annotation.gtf
+## Paths to file
+FASTA="/path/to/discoAnt/fasta_files/"
+REF_GENOME_FN="/path/to/reference_genome.fa"
+ANNA_GTF="/path/to/annotation.gtf"
+
+#path to folders
+RESULTS="/path/to/results"
+PROGRAMS="/path/to/programs"
+SCRIPTS="/path/to/scripts"
+REF_HG38="/path/to/ref_hg38"
 
 ## Analysis parameters
 

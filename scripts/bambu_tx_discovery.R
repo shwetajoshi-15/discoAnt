@@ -1,7 +1,11 @@
 #!/usr/bin/env Rscript
-library(optparse)
-library(dplyr)
-library(bambu)
+options(dplyr.summarise.inform = FALSE)
+suppressWarnings({
+suppressPackageStartupMessages({
+    library(optparse)
+    library(dplyr)
+    library(bambu)
+})
 
 option_list = list(
  make_option(c("-b", "--bam"), type="character", default=NULL,
@@ -40,3 +44,5 @@ CPM <- assays(se)$CPM
 
 write.table(UC, file.path(opt$output_dir, "uniqueCounts.txt"), sep = "\t")
 write.table(CPM, file.path(opt$output_dir, "CPM.txt"), sep = "\t")
+
+})
