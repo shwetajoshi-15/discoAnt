@@ -12,12 +12,13 @@ chr=SIRV5
 ## Paths to data
 
 # required
-FASTA="test_data/test_fasta"
-REF_GENOME_FN="test_data/sirv_refs/SIRV5_ref.fa"
-ANNA_GTF="test_data/sirv_refs/SIRV5_ref.gtf"
+FASTA="sirv_test_data/test_fasta"
+REF_GENOME_FN="sirv_test_data/sirv_refs/SIRV5_ref.fa"
+ANNA_GTF="sirv_test_data/sirv_refs/SIRV5_ref.gtf"
 
 # path to discoAnt folder
-#DA_PATH="."
+
+DA_PATH=$PWD
 
 
 ## Analysis parameters
