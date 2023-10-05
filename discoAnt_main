@@ -46,7 +46,8 @@ grep ${ENSG_ID} ${ANNA_GTF} > $GENE/temp_files/filt_chr.gtf
 ANNA_GTF_filt=$GENE/temp_files/filt_chr.gtf
 
 # FASTA
-samtools faidx ${REF_GENOME_FN} ${chr} > $GENE/temp_files/filt_chr.fa
+# does this produce an index and filter fasta?
+samtools faidx ${REF_GENOME_FN} ${chr} -o $GENE/temp_files/filt_chr.fa
 REF_GENOME_FN_filt=$GENE/temp_files/filt_chr.fa
 
 # define max intron length
@@ -241,6 +242,9 @@ function read_count_function() {
 	sed 's/tx./tx/g' $GENE/bambu/extended_annotations_read_count_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
 	cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
 
+}
+
+function create_metatranscriptome() {
 	echo "Creating a metatranscriptome based on the filtered transcripts"
 
 	gffread -w $GENE/filtered_transcripts/filtered_transcripts.fa -g $REF_GENOME_FN_filt $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
@@ -250,7 +254,6 @@ function read_count_function() {
 
 	filtered_transcripts_known=$( cat $GENE/filtered_transcripts/filtered_transcripts.txt | grep -v tx | wc -l )
 	filtered_transcripts_novel=$( cat $GENE/filtered_transcripts/filtered_transcripts.txt | grep tx | wc -l )
-
 }
 
 function remapping_function() {
@@ -365,6 +368,8 @@ primer_site_function
 
 # Read count filter
 read_count_function
+
+create_metatranscriptome
 
 ##########                                                              ##########
 ########## 2.c. Re-aligning and quantifying filtered bambu transcripts  ##########
