@@ -19,10 +19,10 @@ option_list = list(
 make_option(c("-r", "--readFraction_for_bambu"), type="character", default=NULL,
      help="path to output directory")
 
-);
+)
 
-opt_parser = OptionParser(option_list=option_list);
-opt = parse_args(opt_parser);
+opt_parser = OptionParser(option_list=option_list)
+opt = parse_args(opt_parser)
 
 if (is.null(opt$bam)){
   print_help(opt_parser)

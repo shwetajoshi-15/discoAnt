@@ -7,7 +7,6 @@ args <- commandArgs(trailingOnly = TRUE)
 gene_id <- args[1]
 
 
-
 suppressWarnings({
 # get sample ids from within directory
 sample_names <- c(list.files("metagene_salmon"))
