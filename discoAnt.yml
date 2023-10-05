@@ -1,4 +1,5 @@
 name: discoAnt
+#contains updated salmon
 channels:
   - conda-forge
   - bioconda
@@ -25,7 +26,7 @@ dependencies:
   - r-optparse
   - samtools
   - scipy
-  - salmon=0.14.2
+  - salmon
   - bioconductor-bambu
   - cython
   - scikit-learn

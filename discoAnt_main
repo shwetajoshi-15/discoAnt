@@ -3,6 +3,7 @@
 echo "discoAnt v2.1"
 
 # NOTES
+# add back in genome reference fasta index
 # multi-primer function doesn't work
 # SQANTI doesn't work on my computer (JG)
 # make it so output prints to logs file not terminal
@@ -37,6 +38,8 @@ mkdir -p $GENE/gffcomp_outs
 mkdir -p $GENE/temp_files
 
 #filter reference files 
+# index genome fasta
+
 echo "Extracting chromosome from genome references"
 # GTF
 grep ${ENSG_ID} ${ANNA_GTF} > $GENE/temp_files/filt_chr.gtf
@@ -59,7 +62,7 @@ function downsampling_function() {
 		echo "Downsampling all barcodes"
 
 		mkdir $FASTA/$reads_per_barcode_post_downsampling
-
+		#searches for .fa files only, this currently means no fastq
 		for filename in $FASTA/${base}*.fa
 		do
 		base=$(basename $filename .fa)
@@ -187,81 +190,67 @@ function primer_site_function() {
 	if [ "$primer_site_based_filter" == TRUE ];
 	then
 		# currently broken, have only updated count filtering based on primer site filter == FALSE
-		echo "primer_site_based_filter = TRUE, filtering primer based on start and end coordinates provided and CPM threshold"
+		echo "Primer site filtering on"
 
-			## Create a 5bp window around the 3' sites of the primers
-			((F1_end_5=F1_end-5))
-			((R1_start_5=R1_start+5))
+		## Create a 5bp window around the 3' sites of the primers
+		#((F1_end_5=F1_end-5))
+		#((R1_start_5=R1_start+5))
 
-		echo "Creating a primer window"
+		#echo "Creating a primer window"
 
-			echo $chr$'\t'$F1_end_5$'\t'$F1_end > $GENE/bambu/F1_window_tmp.bed
-			echo $chr$'\t'$R1_start$'\t'$R1_start_5 > $GENE/bambu/R1_window_tmp.bed
+		#echo $chr$'\t'$F1_end_5$'\t'$F1_end > $GENE/bambu/F1_window_tmp.bed
+		#echo $chr$'\t'$R1_start$'\t'$R1_start_5 >> $GENE/bambu/F1_window_tmp.bed
+	
+		echo "Filtering isoforms with bedtools based on primer window"
 
-		echo "Filtering transcripts with bedtools based on primer window"
-
-			bedtools subtract -A -a $GENE/bambu/extended_annotations.gtf -b $GENE/bambu/F1_window_tmp.bed | bedtools subtract -A -a - -b $GENE/bambu/R1_window_tmp.bed > $GENE/filtered_transcripts/extended_annotations_no_primer_overlap.gtf
-			bedtools intersect -wa -a $GENE/bambu/extended_annotations.gtf -b $GENE/bambu/F1_window_tmp.bed | bedtools intersect -wa -a - -b $GENE/bambu/R1_window_tmp.bed > $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf
-
-		echo "Extracting transcripts (names) that overlap the primer window"
-
-			cat $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $GENE/filtered_transcripts/transcripts_primer_overlap.txt
-
-		echo "Extracting transcripts (names) that overlap the primer window and meet the CPM threshold"
-
-			cat $GENE/bambu/CPM.txt | grep -wf $GENE/filtered_transcripts/transcripts_primer_overlap.txt | awk '{ if ($2 >= 1) print }' > $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1.txt
-			cat $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1.txt | awk '{ print $1 }' > $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt
-
-		echo "Filtering transcripts based on primer window overlap and CPM threshold"
-
-			cat $GENE/bambu/extended_annotations.gtf | grep -wf $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt > $GENE/filtered_transcripts/extended_annotations_primer_overlap_CPM_more_than_1.gtf
-			cat $GENE/bambu/extended_annotations.gtf | grep -v -wf $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt > $GENE/discarded_transcripts/extended_annotations_primer_overlap_CPM_more_than_1_discarded.gtf
-
-			# Removing temporary files
-			rm $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt
-
-		echo "Editing filtered GTF files for use with IsoMix"
-
-			sed 's/tx./tx/g' $GENE/filtered_transcripts/extended_annotations_primer_overlap_CPM_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
-			cat $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
-
-		echo "Creating a metatranscriptome based on the filtered transcripts"
-
-			gffread -w $GENE/filtered_transcripts/extended_annotations_filtered.fa -g $REF_GENOME_FN_filt $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
-			salmon index -t $GENE/filtered_transcripts/extended_annotations_filtered.fa -i $GENE/filtered_transcripts -k 31
-
-	else
-
-		echo "primer_site_based_filter = FALSE, filtering primer based on read count threshold only"
-		echo "Extracting transcripts that meet the read threshold"
-
-			cat $GENE/bambu/bambu_read_counts.txt |  awk '{ if ($2 >= 5) print }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt
-			cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | awk '{ print $1 }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
-
-		echo "Filtering transcripts based on CPM threshold"
-
-			cat $GENE/bambu/extended_annotations.gtf | grep -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/bambu/extended_annotations_read_count_more_than_1.gtf
-			cat $GENE/bambu/extended_annotations.gtf | grep -v -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/discarded_transcripts/extended_annotations_read_count_more_than_1_discarded.gtf
+		# write out isoforms which don't match any primers
+		bedtools subtract -A -a $GENE/bambu/extended_annotations.gtf -b $forward_primers | bedtools subtract -A -a - -b $reverse_primers > $GENE/filtered_transcripts/extended_annotations_no_primer_overlap.gtf
 			
-			# Removing temporary files 
-			rm $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
+		# write out isoforms which do map primers
+		bedtools intersect -wa -u -a $GENE/bambu/extended_annotations.gtf -b $forward_primers | bedtools intersect -wa -a - -b $reverse_primers > $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf
 
-		echo "Editing filtered GTF files for use with IsoMix"
+		echo "Extracting isoforms that overlap the primer window"
 
-			sed 's/tx./tx/g' $GENE/bambu/extended_annotations_read_count_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
-			cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
+		cat $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $GENE/filtered_transcripts/transcripts_primer_overlap.txt
 
-		echo "Creating a metatranscriptome based on the filtered transcripts"
-
-			gffread -w $GENE/filtered_transcripts/filtered_transcripts.fa -g $REF_GENOME_FN_filt $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
-			salmon index -t $GENE/filtered_transcripts/filtered_transcripts.fa -i $GENE/filtered_transcripts -k 31
-
-		echo "Creating metrics for the report"
-		#not ENST
-			filtered_transcripts_known=$( cat $GENE/filtered_transcripts/filtered_transcripts.txt | grep ENST | grep -v _ | wc -l )
-			filtered_transcripts_novel=$( cat $GENE/filtered_transcripts/filtered_transcripts.txt | grep tx | grep -v _ | wc -l )
-
+	elif [ "$primer_site_based_filter" == FALSE ];
+	then
+		echo "Primer site filtering off"
 	fi
+}
+
+function read_count_function() {
+	echo "Filtering transcripts based on read count threshold"
+	if [ "$primer_site_based_filter" == TRUE ];
+	then
+		cat $GENE/bambu/bambu_read_counts.txt | grep -wf $GENE/filtered_transcripts/transcripts_primer_overlap.txt | awk '{ if ($2 >= 5) print }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt
+	elif [ "$primer_site_based_filter" == FALSE ];
+	then
+		cat $GENE/bambu/bambu_read_counts.txt |  awk '{ if ($2 >= 5) print }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt
+	fi
+
+	cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | awk '{ print $1 }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
+
+	cat $GENE/bambu/extended_annotations.gtf | grep -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/bambu/extended_annotations_read_count_more_than_1.gtf
+	cat $GENE/bambu/extended_annotations.gtf | grep -v -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/discarded_transcripts/extended_annotations_read_count_more_than_1_discarded.gtf
+			
+	# Removing temporary files 
+	rm $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
+	echo "Editing filtered GTF files for use with IsoMix"
+
+	sed 's/tx./tx/g' $GENE/bambu/extended_annotations_read_count_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
+	cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
+
+	echo "Creating a metatranscriptome based on the filtered transcripts"
+
+	gffread -w $GENE/filtered_transcripts/filtered_transcripts.fa -g $REF_GENOME_FN_filt $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
+	salmon index -t $GENE/filtered_transcripts/filtered_transcripts.fa -i $GENE/filtered_transcripts -k 31
+
+	echo "Creating metrics for the report"
+
+	filtered_transcripts_known=$( cat $GENE/filtered_transcripts/filtered_transcripts.txt | grep -v tx | wc -l )
+	filtered_transcripts_novel=$( cat $GENE/filtered_transcripts/filtered_transcripts.txt | grep tx | wc -l )
+
 }
 
 function remapping_function() {
@@ -371,8 +360,11 @@ run_bambu_function
 ########## 2.b. Filtering bambu transcripts and creating a transcriptome ##########
 ##########                                                               ##########
 
-# Primer site + CPM based filter 
+# Primer site filter
 primer_site_function
+
+# Read count filter
+read_count_function
 
 ##########                                                              ##########
 ########## 2.c. Re-aligning and quantifying filtered bambu transcripts  ##########

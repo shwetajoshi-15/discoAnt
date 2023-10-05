@@ -37,13 +37,11 @@ reads_per_barcode_post_downsampling=8000
 # bambu parameter (optional?)
 readFraction_for_bambu=0.001
 
-# CPM_based_filter is set to TRUE by default.
-# recommended threshold value is 1
-CPM_threshold=1
-
+# read_count_filter is set to TRUE by default
+# recommended threshold value is 5
+# currently doesn't edit the script, need to modify
+read_count_threshold=5
 
 ## Primer coordinates
-F1_start=
-F1_end=
-R1_start=
-R1_end=
+forward_primers=forward_sirv7.bed
+reverse_primers=reverse_sirv7.bed
