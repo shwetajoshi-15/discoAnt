@@ -1,31 +1,27 @@
 # discoAnt
-- version 21092023
-
-## Updates in v2.1
-- optional primer site based filter
-- report: includes statistics for the FASTA files and number of known and novel transcripts
-- edits to the transcript file output for compatibility with IsoMix
-
-## Prepare FASTA files in a folder
-All the sample files (pass-reads only) should be in FASTA format (.fa)
+- v04102023_JG
 
 ## Setting up discoAnt
 
-1. Downloading the workflow with ```git clone```
+1. Download the workflow with \
+   `git clone`
   
-2. Downloading relevant reference file and creating a conda environment \
-  ```cd discoAnt``` \
-  ```bash discoAnt_setup.sh```
+2. Setup conda environment and dependencies \
+  `cd discoAnt` \
+  `bash scripts/discoAnt_setup`
  
-3. Running a test script to check installation \
-  ```conda activate discoAnt``` \
-  ```bash discoAnt_v2.1.sh discoAnt_params_SIRV.txt```
-  
-4. Update discoAnt_params.txt with gene info and paths to relevant folders before running the workflow with the data set of your choice \
-  ```conda activate discoAnt.env``` \
-  ```bash discoAnt_v2.1.sh path_to_parmas.txt```
+ Note: depending on your operating system you may need to edit the setup file to either 'conda activate' or 'source activate'
 
-#### Refer to the sample submission scripts for running the pipeline on a HPC cluster.
+3. Test discoAnt (from within the discoAnt directory) to check installation \
+   `cd discoAnt` \
+   `conda activate discoAnt` \
+   `bash discoAnt_main sirv_test_data/SIRV_params.txt`
+  
+5. Update example_parameters.txt with required sample information and paths to relevant folders \
+  `conda activate discoAnt` \
+  `bash discoAnt_main example_parameters.txt`
+
+#### Refer to the sample submission scripts for running the pipeline on a HPC cluster
 
 ## Workflow
 

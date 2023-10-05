@@ -1,0 +1,68 @@
+	Thu  5 Oct 2023 11:28:46 AEDT
+
+	Number of barcodes:        6
+	Number of reads across barcodes: 
+
+	Downsampling: FALSE
+	Number of reads across barcodes post-downsampling: 
+
+	Read support for transcripts: 
+
+	Filters applied:
+	CPM threshold: ## recommended value is 1
+	Primer site based filter: FALSE
+
+	Known transcripts post filtering:        0
+	Novel transcrupts post filtering:        0
+
+	Thu  5 Oct 2023 11:36:44 AEDT
+
+	Number of barcodes:        6
+	Number of reads across barcodes: 
+
+	Downsampling: FALSE
+	Number of reads across barcodes post-downsampling: 
+
+	Read support for transcripts: 
+
+	Filters applied:
+	CPM threshold: ## recommended value is 1
+	Primer site based filter: FALSE
+
+	Known transcripts post filtering:        0
+	Novel transcrupts post filtering:        0
+
+	Thu  5 Oct 2023 11:39:23 AEDT
+
+	Number of barcodes:        6
+	Number of reads across barcodes: 
+
+	Downsampling: FALSE
+	Number of reads across barcodes post-downsampling: 
+
+	Read support for transcripts: 
+
+	Filters applied:
+	CPM threshold: ## recommended value is 1
+	Primer site based filter: FALSE
+
+	Known transcripts post filtering:        0
+	Novel transcrupts post filtering:        0
+
+	Thu  5 Oct 2023 11:45:38 AEDT
+
+	Number of barcodes:        6
+	Number of reads across barcodes: 
+
+	Downsampling: FALSE
+	Number of reads across barcodes post-downsampling: 
+
+	Read support for transcripts: 
+
+	Filters applied:
+	CPM threshold: ## recommended value is 1
+	Primer site based filter: FALSE
+
+	Known transcripts post filtering:        0
+	Novel transcrupts post filtering:        0
+

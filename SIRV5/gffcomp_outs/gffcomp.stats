@@ -1,0 +1,30 @@
+# gffcompare v0.12.6 | Command line was:
+#gffcompare -r SIRV5/temp_files/filt_chr.gtf -o SIRV5/gffcomp_outs/gffcomp SIRV5/SIRV5_discoAnt_isoforms.gtf
+#
+
+#= Summary for dataset: SIRV5/SIRV5_discoAnt_isoforms.gtf 
+#     Query mRNAs :       5 in       1 loci  (5 multi-exon transcripts)
+#            (1 multi-transcript loci, ~5.0 transcripts per locus)
+# Reference mRNAs :      12 in       2 loci  (10 multi-exon)
+# Super-loci w/ reference transcripts:        1
+#-----------------| Sensitivity | Precision  |
+        Base level:    58.7     |   100.0    |
+        Exon level:    73.7     |   100.0    |
+      Intron level:    87.0     |   100.0    |
+Intron chain level:    50.0     |   100.0    |
+  Transcript level:    41.7     |   100.0    |
+       Locus level:    50.0     |   100.0    |
+
+     Matching intron chains:       5
+       Matching transcripts:       5
+              Matching loci:       1
+
+          Missed exons:       1/38	(  2.6%)
+           Novel exons:       0/27	(  0.0%)
+        Missed introns:       0/23	(  0.0%)
+         Novel introns:       0/20	(  0.0%)
+           Missed loci:       1/2	( 50.0%)
+            Novel loci:       0/1	(  0.0%)
+
+ Total union super-loci across all input datasets: 1 
+5 out of 5 consensus transcripts written in SIRV5/gffcomp_outs/gffcomp.annotated.gtf (0 discarded as redundant)
