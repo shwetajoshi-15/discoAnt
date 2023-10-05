@@ -179,8 +179,8 @@ function run_bambu_function() {
 		-o $GENE/bambu
 
 	# what are these counts for? Don't think we need.
-	awk 'FNR==NR{s+=$2;next;} {printf "%s\t%s\t%s%%\n",$1,$2,100*$2/s}' $GENE/bambu/uniqueCounts.txt $GENE/bambu/uniqueCounts.txt > $GENE/bambu/uniqueCounts_perc.txt
-	awk 'FNR==NR{s+=$2;next;} {printf "%s\t%s\t%s%%\n",$1,$2,100*$2/s}' $GENE/bambu/CPM.txt $GENE/bambu/CPM.txt > $GENE/bambu/CPM_perc.txt
+	#awk 'FNR==NR{s+=$2;next;} {printf "%s\t%s\t%s%%\n",$1,$2,100*$2/s}' $GENE/bambu/uniqueCounts.txt $GENE/bambu/uniqueCounts.txt > $GENE/bambu/uniqueCounts_perc.txt
+	#awk 'FNR==NR{s+=$2;next;} {printf "%s\t%s\t%s%%\n",$1,$2,100*$2/s}' $GENE/bambu/CPM.txt $GENE/bambu/CPM.txt > $GENE/bambu/CPM_perc.txt
 }
 
 function primer_site_function() {
@@ -275,7 +275,7 @@ function remapping_function() {
 		base=$(basename $filename .fa)
 		echo "On sample $base"
 
-		salmon quant --quiet -i $GENE/filtered_transcripts/filtered_transcripts.fa -l A -r $FASTA/${base}.fa -o $GENE/metagene_salmon/${base}
+		salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $FASTA/${base}.fa -o $GENE/metagene_salmon/${base}
 
 		done
 
@@ -357,7 +357,7 @@ read_per_barcode_count_function
 ##########                                                    ##########
 
 # run mapping and suppress output
-mapping_genome_function > /dev/null 2>&1 &
+mapping_genome_function
 
 ##########                                                       ##########
 ########## 2.a. Correcting and collapsing transcripts with bambu ##########
@@ -378,7 +378,7 @@ primer_site_function
 ########## 2.c. Re-aligning and quantifying filtered bambu transcripts  ##########
 ##########                                                              ##########
 
-remapping_function > /dev/null 2>&1 & 
+remapping_function #> /dev/null 2>&1 & 
 
 ##########                                ##########
 ########## 2.d. Generating count matrix   ##########
