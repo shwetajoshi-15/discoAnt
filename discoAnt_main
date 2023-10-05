@@ -48,7 +48,7 @@ REF_GENOME_FN_filt=$GENE/temp_files/filt_chr.fa
 
 # define max intron length
 if [ -z "$max_intron_length" ]; then
-    max_intron_length="200" # Set to the default value if max_intron_length is empty
+    max_intron_length="400" # Set to the default value if max_intron_length is empty
 fi
 
 # define functions
