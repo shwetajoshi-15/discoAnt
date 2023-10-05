@@ -4,7 +4,7 @@
 max_intron_length=   #null to run default
 
 # required 
-GENE=SIRV5
+GENE=test_data_SIRV5
 ENSG_ID=SIRV5
 chr=SIRV5
 
