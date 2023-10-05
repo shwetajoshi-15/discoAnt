@@ -1,0 +1,2 @@
+GENEID	.bam
+SIRV5	980.99993

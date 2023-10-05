@@ -41,8 +41,10 @@ writeBambuOutput(se, opt$output_dir)
 
 UC <- assays(se)$uniqueCounts
 CPM <- assays(se)$CPM
+RC <- assays(se)$counts
 
 write.table(UC, file.path(opt$output_dir, "uniqueCounts.txt"), sep = "\t")
 write.table(CPM, file.path(opt$output_dir, "CPM.txt"), sep = "\t")
+write.table(RC, file.path(opt$output_dir, "bambu_read_counts.txt"), sep = "\t")
 
 })

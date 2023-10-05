@@ -6,6 +6,7 @@ echo "discoAnt v2.1"
 # multi-primer function doesn't work
 # SQANTI doesn't work on my computer (JG)
 # make it so output prints to logs file not terminal
+# salmon version is very old and not long read mode?
 
 
 # source parameters file
@@ -185,7 +186,7 @@ function run_bambu_function() {
 function primer_site_function() {
 	if [ "$primer_site_based_filter" == TRUE ];
 	then
-
+		# currently broken, have only updated count filtering based on primer site filter == FALSE
 		echo "primer_site_based_filter = TRUE, filtering primer based on start and end coordinates provided and CPM threshold"
 
 			## Create a 5bp window around the 3' sites of the primers
@@ -231,24 +232,24 @@ function primer_site_function() {
 
 	else
 
-		echo "primer_site_based_filter = FALSE, filtering primer based on CPM threshold only"
-		echo "Extracting transcripts (names) that meet the CPM threshold"
+		echo "primer_site_based_filter = FALSE, filtering primer based on read count threshold only"
+		echo "Extracting transcripts that meet the read threshold"
 
-			cat $GENE/bambu/CPM.txt |  awk '{ if ($2 >= 1) print }' > $GENE/filtered_transcripts/transcripts_CPM_more_than_1.txt
-			cat $GENE/filtered_transcripts/transcripts_CPM_more_than_1.txt | awk '{ print $1 }' > $GENE/filtered_transcripts/transcripts_CPM_more_than_1_list_tmp.txt
+			cat $GENE/bambu/bambu_read_counts.txt |  awk '{ if ($2 >= 5) print }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt
+			cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | awk '{ print $1 }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
 
 		echo "Filtering transcripts based on CPM threshold"
 
-			cat $GENE/bambu/extended_annotations.gtf | grep -wf $GENE/filtered_transcripts/transcripts_CPM_more_than_1_list_tmp.txt > $GENE/bambu/extended_annotations_CPM_more_than_1.gtf
-			cat $GENE/bambu/extended_annotations.gtf | grep -v -wf $GENE/filtered_transcripts/transcripts_CPM_more_than_1_list_tmp.txt > $GENE/discarded_transcripts/extended_annotations_CPM_more_than_1_discarded.gtf
+			cat $GENE/bambu/extended_annotations.gtf | grep -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/bambu/extended_annotations_read_count_more_than_1.gtf
+			cat $GENE/bambu/extended_annotations.gtf | grep -v -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/discarded_transcripts/extended_annotations_read_count_more_than_1_discarded.gtf
 			
 			# Removing temporary files 
-			rm $GENE/filtered_transcripts/transcripts_CPM_more_than_1_list_tmp.txt
+			rm $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
 
 		echo "Editing filtered GTF files for use with IsoMix"
 
-			sed 's/tx./tx/g' $GENE/bambu/extended_annotations_CPM_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
-			cat $GENE/filtered_transcripts/transcripts_CPM_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
+			sed 's/tx./tx/g' $GENE/bambu/extended_annotations_read_count_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
+			cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
 
 		echo "Creating a metatranscriptome based on the filtered transcripts"
 
@@ -274,7 +275,7 @@ function remapping_function() {
 		base=$(basename $filename .fa)
 		echo "On sample $base"
 
-		salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $FASTA/${base}.fa -o $GENE/metagene_salmon/${base}
+		salmon quant --quiet -i $GENE/filtered_transcripts/filtered_transcripts.fa -l A -r $FASTA/${base}.fa -o $GENE/metagene_salmon/${base}
 
 		done
 

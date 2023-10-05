@@ -1,0 +1,9 @@
+{
+    "salmon_version": "0.14.1",
+    "quiet": [],
+    "index": "SIRV5/filtered_transcripts",
+    "libType": "A",
+    "unmatedReads": "sirv_test_data/test_fasta/2021_10_07.barcode05.fa",
+    "output": "SIRV5/metagene_salmon/2021_10_07.barcode05",
+    "auxDir": "aux_info"
+}
