@@ -53,6 +53,30 @@ fi
 
 # define functions
 
+####have a new function to check that fastq(.gz) and fasta files are in the FASTA DIR and that FASTA dir exists
+
+function check_for_fastq_or_fasta_files() {
+	
+	if [ -d "$FASTA" ]; then
+        echo "Searching for FASTQ or FASTA files in $FASTA and its subdirectories..."
+        
+        # Use find to search for FASTQ or FASTA files
+        if find "$FASTA" -type f \( -name "*.fastq"  -o -name "*.fastq.gz" -o -name "*.fasta" -o -name "*.fa" \) -print -quit | grep -q . ; then
+            echo "FASTQ or FASTA files found. Continuing..."
+            # Call the next function or perform the next task here
+        else
+            echo "No FASTQ or FASTA files found. Exiting."
+            $exit 1 
+        fi
+    else
+        echo "Directory not found: $directory"
+        exit 1  # Quit the script with an error code (adjust as needed)
+    fi
+}
+
+
+check_for_fastq_or_fasta_files
+
 ############
 #new downsample_function
 
@@ -77,7 +101,7 @@ function downsampling_function() {
 			rm $FASTA/${subdir}_cat.fastq
 
 			for filename in $FASTA/$subdir; do
-				base=$(basename "$filename" .fa)
+				base=$(basename "$filename" .fastq)
 				echo "On sample $base"
 				
 				# If you still need to do something with individual files, you can do it here.
@@ -134,12 +158,12 @@ function mapping_genome_function() {
 
 	echo "Aligning pass reads to "${chr}""
 
-		for filename in $FASTA/$reads_per_barcode_post_downsampling/*.fastq
+		for filename in $FASTA/$reads_per_barcode_post_downsampling/*.fa*
 		do
-		base=$(basename $filename .fastq)
+		base=$(basename $filename *.fa*)
 		echo "On sample $base"
 
-		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$reads_per_barcode_post_downsampling/*.fastq > $GENE/minimap2/${base}.sam
+		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$reads_per_barcode_post_downsampling/*.fa* > $GENE/minimap2/${base}.sam
 		samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
 		samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
 		
@@ -158,12 +182,12 @@ function mapping_genome_function() {
 
 	echo "Aligning pass reads to $chr"
 
-		for filename in $FASTA/*.fa
+		for filename in $FASTA/*.fa*
 		do
-		base=$(basename $filename .fa)
+		base=$(basename $filename *.fa*)
 		echo "On sample $base"
 
-		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/${base}.fa > $GENE/minimap2/${base}.sam
+		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/${base}.fa* > $GENE/minimap2/${base}.sam
 		samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
 		samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
 
