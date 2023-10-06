@@ -15,13 +15,13 @@
 3. Test discoAnt (from within the discoAnt directory) to check installation \
    `cd discoAnt` \
    `conda activate discoAnt` \
-   `bash discoAnt_main sirv_test_data/SIRV_params.txt`
+   `bash discoAnt_main sirv_test_data/sirv_params.txt`
   
 5. Update example_parameters.txt with required sample information and paths to relevant folders \
   `conda activate discoAnt` \
   `bash discoAnt_main example_parameters.txt`
 
-#### Refer to the sample submission scripts for running the pipeline on a HPC cluster
+### Refer to the sample submission scripts folder for running the pipeline on an HPC cluster
 
 ## Workflow
 
