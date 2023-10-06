@@ -1,6 +1,4 @@
-FASTA=/data/scratch/users/yairp/discoAnt/downsample_test/pass_subset
-downsampling=TRUE
-reads_per_barcode_post_downsampling=100
+#/bin/bash!
 
 function downsampling_function() {
 	if [ "$downsampling" == TRUE ]; then
@@ -9,7 +7,7 @@ function downsampling_function() {
 		for subdir in "$FASTA"/*/
 		do
 			subdir=$(basename "$subdir") # Extract the subdirectory name
-			mkdir -p $FASTA/reads_per_barcode_post_downsampling/
+			mkdir -p $FASTA/$reads_per_barcode_post_downsampling/
 			
 			## Concatenate all FASTQ files in the subdirectory into one
 			cat $FASTA/$subdir/*.fastq > $FASTA/${subdir}_cat.fastq
@@ -33,7 +31,5 @@ function downsampling_function() {
 		done
 	fi
 }
-
-downsampling_function
 
 

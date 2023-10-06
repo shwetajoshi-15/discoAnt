@@ -52,24 +52,39 @@ if [ -z "$max_intron_length" ]; then
 fi
 
 # define functions
+
+############
+#new downsample_function
+
 function downsampling_function() {
-	if [ "$downsampling" == TRUE ];
-	then
-
+	if [ "$downsampling" == TRUE ]; then
 		echo "Downsampling all barcodes"
-
-		mkdir $FASTA/$reads_per_barcode_post_downsampling
-
-		for filename in $FASTA/${base}*.fa
+		
+		for subdir in "$FASTA"/*/
 		do
-		base=$(basename $filename .fa)
-		echo "On sample $base"
+			subdir=$(basename "$subdir") # Extract the subdirectory name
+			mkdir -p $FASTA/$reads_per_barcode_post_downsampling/
+			
+			## Concatenate all FASTQ files in the subdirectory into one
+			cat $FASTA/$subdir/*.fastq > $FASTA/${subdir}_cat.fastq
 
-		#to fix 
-		#reformat.sh samplereadstarget=$reads_per_barcode_post_downsampling in=$FASTA/${base}.fa out=$FASTA/$reads_per_barcode_post_downsampling/${base}.fa
+			## Downsample the combined FASTQ file
+			reformat.sh sample=$reads_per_barcode_post_downsampling \
+			in=$FASTA/${subdir}_cat.fastq \
+			out=$FASTA/$reads_per_barcode_post_downsampling/$subdir.fastq
 
+			# Clean up the combined file
+			rm $FASTA/${subdir}_cat.fastq
+
+			for filename in $FASTA/$subdir; do
+				base=$(basename "$filename" .fa)
+				echo "On sample $base"
+				
+				# If you still need to do something with individual files, you can do it here.
+				# For example, you may want to move the original files to a different directory.
+				
+			done
 		done
-
 	fi
 }
 
@@ -119,12 +134,12 @@ function mapping_genome_function() {
 
 	echo "Aligning pass reads to "${chr}""
 
-		for filename in $FASTA/*.fa
+		for filename in $FASTA/$reads_per_barcode_post_downsampling/*.fastq
 		do
-		base=$(basename $filename .fa)
+		base=$(basename $filename .fastq)
 		echo "On sample $base"
 
-		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $GENE/minimap2/${base}.sam
+		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$reads_per_barcode_post_downsampling/*.fastq > $GENE/minimap2/${base}.sam
 		samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
 		samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
 		
@@ -140,10 +155,6 @@ function mapping_genome_function() {
 	# should be else if, not new if function
 	if [ "$downsampling" == FALSE ];
 	then
-
-	#echo "Extracting chromossome from genome ref"
-
-	#samtools faidx "${REF_GENOME_FN_filt}" "${chr}" > REF_GENOME_FN_filt_chr.fa
 
 	echo "Aligning pass reads to $chr"
 
@@ -270,7 +281,7 @@ function remapping_function() {
 
 		echo "Quantifying transcripts (mapping based mode in salmon)"
 
-		for filename in $FASTA/*.fa
+		for filename in $FASTA/*.fa*
 		do
 		base=$(basename $filename .fa)
 		echo "On sample $base"
@@ -283,7 +294,7 @@ function remapping_function() {
 
 	echo "Quantifying transcripts (mapping based mode in salmon)"
 
-		for filename in $FASTA/*.fa
+		for filename in $FASTA/*.fa*
 		do
 		base=$(basename $filename .fa)
 		echo "On sample $base"
@@ -349,14 +360,14 @@ EOT
 # Downsampling
 downsampling_function
 
-# Count number of reads in each barcode 
-read_per_barcode_count_function
+#### Count number of reads in each barcode 
+#read_per_barcode_count_function
 
 ##########                                                    ##########
 ########## 1. Aligning sample fasta files to reference genome ##########
 ##########                                                    ##########
 
-# run mapping and suppress output
+#### run mapping and suppress output
 mapping_genome_function
 
 ##########                                                       ##########
@@ -364,14 +375,14 @@ mapping_genome_function
 ##########                                                       ##########
 
 # suppressing output here breaks it for some reason...
-# if suppressed it breaks the primer_site_function part
+##### if suppressed it breaks the primer_site_function part
 run_bambu_function
 
 ##########                                                               ##########
 ########## 2.b. Filtering bambu transcripts and creating a transcriptome ##########
 ##########                                                               ##########
 
-# Primer site + CPM based filter 
+##### Primer site + CPM based filter 
 primer_site_function
 
 ##########                                                              ##########
@@ -379,7 +390,6 @@ primer_site_function
 ##########                                                              ##########
 
 remapping_function #> /dev/null 2>&1 & 
-
 ##########                                ##########
 ########## 2.d. Generating count matrix   ##########
 ##########                                ##########
@@ -391,7 +401,7 @@ combine_quants_function
 ##########                           ##########
 
 gffcomp_function
-#sqanti_function
+sqanti_function
 
 ##########           ##########
 ########## 4. Report ##########
@@ -399,11 +409,11 @@ gffcomp_function
 
 generate_report_function
 
-# finished functions
+## finished functions
 
 
 #removing temp files
-rm -rf $GENE/temp_files
+#rm -rf $GENE/temp_files
 
 echo "
 ██████  ██ ███████  ██████  ██████   █████  ███    ██ ████████      ██████  ██████  ███    ███ ██████  ██      ███████ ████████ ███████ 
