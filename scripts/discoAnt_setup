@@ -9,7 +9,7 @@ source activate discoAnt
 # install SQANTI
 cd scripts
 git clone https://github.com/ConesaLab/SQANTI3.git
-chmod +x scripts/SQANTI3/utilities/gtfToGenePred
+chmod +x SQANTI3/utilities/gtfToGenePred
 
 # install cDNA Cupcake
 git clone https://github.com/youyupei/cDNA_Cupcake.git

@@ -6,18 +6,8 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 # update to v3?
 echo "discoAnt v2.1"
 
-# NOTES
-# SQANTI doesn't work on my computer (JG)
-# make it so output prints to logs file not terminal
-
-
-
 # source parameters file
 source ${1}
-
-# source python paths for cDNA Cupcake
-export PYTHONPATH="$SCRIPT_DIR/scripts/cDNA_Cupcake/sequence/:$PYTHONPATH"
-export PYTHONPATH="$SCRIPT_DIR/scripts/cDNA_Cupcake/:$PYTHONPATH"
 
 echo \
 "
@@ -52,34 +42,64 @@ ANNA_GTF_filt=$GENE/temp_files/filt_chr.gtf
 samtools faidx ${REF_GENOME_FN} ${chr} -o $GENE/temp_files/filt_chr.fa
 REF_GENOME_FN_filt=$GENE/temp_files/filt_chr.fa
 
-# define max intron length
-if [ -z "$max_intron_length" ]; then
-    max_intron_length="400" # Set to the default value if max_intron_length is empty
-fi
 
-# define functions
+####have a new function to check that fastq(.gz) and fasta files are in the FASTA DIR and that FASTA dir exists
+function check_for_fastq_or_fasta_files() {
+	
+	if [ -d "$FASTA" ]; then
+        echo "Searching for FASTQ or FASTA files in $FASTA and its subdirectories..."
+        
+        # Use find to search for FASTQ or FASTA files
+        if find "$FASTA" -type f \( -name "*.fastq"  -o -name "*.fastq.gz" -o -name "*.fasta" -o -name "*.fa" \) -print -quit | grep -q . ; then
+            echo "FASTQ or FASTA files found. Continuing..."
+            # Call the next function or perform the next task here
+        else
+            echo "No FASTQ or FASTA files found. Exiting."
+            $exit 1 
+        fi
+    else
+        echo "Directory not found: $directory"
+        exit 1  # Quit the script with an error code (adjust as needed)
+    fi
+    
+}
 
-# downsampling being added by Sefi
+
+
+# new downsample_function
 function downsampling_function() {
-	if [ "$downsampling" == TRUE ];
-	then
-
+	if [ "$downsampling" == TRUE ]; then
 		echo "Downsampling all barcodes"
-
-		mkdir $FASTA/$reads_per_barcode_post_downsampling
-		#searches for .fa files only, this currently means no fastq
-		for filename in $FASTA/${base}*.fa
+		
+		for subdir in "$FASTA"/*/
 		do
-		base=$(basename $filename .fa)
-		echo "On sample $base"
+			subdir=$(basename "$subdir") # Extract the subdirectory name
+			mkdir -p $FASTA/$reads_per_barcode_post_downsampling/
+			
+			## Concatenate all FASTQ files in the subdirectory into one
+			cat $FASTA/$subdir/*.fastq > $FASTA/${subdir}_cat.fastq
 
-		#to fix 
-		#reformat.sh samplereadstarget=$reads_per_barcode_post_downsampling in=$FASTA/${base}.fa out=$FASTA/$reads_per_barcode_post_downsampling/${base}.fa
+			## Downsample the combined FASTQ file
+			reformat.sh sample=$reads_per_barcode_post_downsampling \
+			in=$FASTA/${subdir}_cat.fastq \
+			out=$FASTA/$reads_per_barcode_post_downsampling/$subdir.fastq
 
+			# Clean up the combined file
+			rm $FASTA/${subdir}_cat.fastq
+
+			for filename in $FASTA/$subdir
+      do
+      
+				base=$(basename "$filename" .fastq)
+				echo "On sample $base"
+				
+				# If you still need to do something with individual files, you can do it here.
+				# For example, you may want to move the original files to a different directory.
+			done
 		done
-
 	fi
 }
+
 
 # unsure if this function works
 function read_per_barcode_count_function() {
@@ -124,19 +144,25 @@ function read_per_barcode_count_function() {
 }
 
 function mapping_genome_function() {
-	if [ "$downsampling" == TRUE ];
+	# define max intron length for minimap2
+  if [ -z "$max_intron_length" ]; then
+    max_intron_length="400" # Set to the default value if max_intron_length is empty
+  fi
+  
+  if [ "$downsampling" == TRUE ];
 	then
 
-		echo "Aligning pass reads to "${chr}""
+		echo "Aligning pass reads to $chr"
 
-		for filename in $FASTA/*.fa
+		for filename in $FASTA/$reads_per_barcode_post_downsampling/*.fa*
 		do
-			base=$(basename $filename .fa)
-			echo "On sample $base"
 
-			minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$reads_per_barcode_post_downsampling/${base}.fa > $GENE/minimap2/${base}.sam
-			samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
-			samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
+      base=$(basename $filename *.fa*)
+      echo "On sample $base"
+
+      minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$reads_per_barcode_post_downsampling/*.fa* > $GENE/minimap2/${base}.sam
+      samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
+      samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
 
 		done
 
@@ -146,16 +172,19 @@ function mapping_genome_function() {
 		
 		echo "Aligning pass reads to $chr"
 
-		for filename in $FASTA/*.fa
-		do
-		base=$(basename $filename .fa)
-		echo "On sample $base"
 
-		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/${base}.fa > $GENE/minimap2/${base}.sam
-		samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
-		samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
+		for filename in $FASTA/*.fa*
+		do
+    
+      base=$(basename $filename *.fa*)
+      echo "On sample $base"
+
+      minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/${base}.fa* > $GENE/minimap2/${base}.sam
+      samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
+      samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
 
 		done
+    
 	fi
 	
 	samtools merge -f $GENE/minimap2/$GENE_pri_merged.bam $GENE/minimap2/*_pri_sorted.bam
@@ -165,6 +194,7 @@ function mapping_genome_function() {
 	samtools index $GENE/minimap2/$GENE_merged.bam
 	
 	rm $GENE/minimap2/*.sam
+  
 }
 
 function run_bambu_function() {
@@ -239,7 +269,7 @@ function remapping_function() {
 
 		echo "Quantifying with salmon"
 
-		for filename in $FASTA/*.fa
+		for filename in $FASTA/*.fa*
 		do
 
 			base=$(basename $filename .fa)
@@ -254,7 +284,7 @@ function remapping_function() {
 
 		echo "Quantifying with salmon"
 
-		for filename in $FASTA/*.fa
+		for filename in $FASTA/*.fa*
 		do
 
 			base=$(basename $filename .fa)
@@ -297,6 +327,10 @@ function gffcomp_function() {
 }
 
 function sqanti_function() {
+  # source python paths for cDNA Cupcake to run with SQANTI
+  export PYTHONPATH="$SCRIPT_DIR/scripts/cDNA_Cupcake/sequence/:$PYTHONPATH"
+  export PYTHONPATH="$SCRIPT_DIR/scripts/cDNA_Cupcake/:$PYTHONPATH"
+  
 	echo "Annotating isoforms with SQANTI"
 	python $SCRIPT_DIR/scripts/SQANTI3/sqanti3_qc.py \
 		$GENE/${ENSG_ID}_discoAnt_isoforms.gtf \
@@ -332,23 +366,26 @@ EOT
 
 ########## 0. Counting the number of reads and downsampling ##########
 
+# check filetypes
+check_for_fastq_or_fasta_files
+
 # Downsampling
 downsampling_function
 
-# Count number of reads in each barcode 
-read_per_barcode_count_function
+#### Count number of reads in each barcode 
+#read_per_barcode_count_function
 
 
 ########## 1. Aligning sample fasta files to reference genome ##########
 
-# run mapping and suppress output
+#### run mapping and suppress output
 mapping_genome_function
 
 
 ########## 2.a. Correcting and collapsing transcripts with bambu ##########
 
 # suppressing output here breaks it for some reason...
-# if suppressed it breaks the primer_site_function part
+##### if suppressed it breaks the primer_site_function part
 run_bambu_function
 
 
@@ -368,7 +405,6 @@ create_metatranscriptome
 
 # remap to salmon metatranscriptome
 remapping_function
-
 
 ########## 2.d. Generating count matrix   ##########
 
@@ -397,12 +433,11 @@ generate_report_function
 
 ########## Finished ##########
 
-
 # removing temp files
+# currently commented out while de-bugging
 # more of the extra files should be put into tmp and deleted
-rm -rf $GENE/temp_files
-rm $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
-
+#rm -rf $GENE/temp_files
+#rm $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
 
 echo "
 ██████  ██ ███████  ██████  ██████   █████  ███    ██ ████████      ██████  ██████  ███    ███ ██████  ██      ███████ ████████ ███████ 
