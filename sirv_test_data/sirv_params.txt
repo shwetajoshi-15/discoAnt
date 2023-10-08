@@ -1,0 +1,42 @@
+## Gene Information
+
+# optional 
+max_intron_length=   #null to run default
+
+# required 
+GENE=primers_on_SIRV5
+ENSG_ID=SIRV5
+chr=SIRV5
+
+
+## Paths to data
+
+# required
+FASTA="sirv_test_data/test_fasta"
+REF_GENOME_FN="sirv_test_data/sirv_refs/SIRV5_ref.fa"
+ANNA_GTF="sirv_test_data/sirv_refs/SIRV5_ref.gtf"
+
+## Analysis parameters
+
+# required
+
+# downsampling to be set to TRUE or FALSE
+downsampling=FALSE
+
+# primer site filter to be set to TRUE or FALSE
+primer_site_based_filter=TRUE
+
+# minimum thresholds
+reads_per_barcode_post_downsampling=8000
+read_count_minimum=5
+
+## Bambu
+# bambu parameter (optional?)
+readFraction_for_bambu=0.001
+
+## Primer coordinates for forward and reverse, as bed files
+forward_primers="sirv_test_data/sirv_forward.bed"
+reverse_primers="sirv_test_data/sirv_reverse.bed"
+
+# optional 
+max_intron_length=   #null to run default
