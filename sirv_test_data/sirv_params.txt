@@ -1,8 +1,5 @@
 ## Gene Information
 
-# optional 
-max_intron_length=   #null to run default
-
 # required 
 GENE=primers_on_SIRV5
 ENSG_ID=SIRV5
@@ -38,5 +35,5 @@ readFraction_for_bambu=0.001
 forward_primers="sirv_test_data/sirv_forward.bed"
 reverse_primers="sirv_test_data/sirv_reverse.bed"
 
-# optional 
+# optional for minimap2
 max_intron_length=   #null to run default
