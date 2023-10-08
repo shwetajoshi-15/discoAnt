@@ -1,20 +1,13 @@
-#/bin/bash!
+#!/usr/bin/env bash
 
+# get directory of discoAnt script
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# update to v3?
 echo "discoAnt v2.1"
-
-# NOTES
-# multi-primer function doesn't work
-# SQANTI doesn't work on my computer (JG)
-# make it so output prints to logs file not terminal
-# salmon version is very old and not long read mode?
-
 
 # source parameters file
 source ${1}
-
-# source python paths for cDNA Cupcake
-export PYTHONPATH="$DA_PATH/scripts/cDNA_Cupcake/sequence/:$PYTHONPATH"
-export PYTHONPATH="$DA_PATH/scripts/cDNA_Cupcake/:$PYTHONPATH"
 
 echo \
 "
@@ -36,25 +29,21 @@ mkdir -p $GENE/discarded_transcripts
 mkdir -p $GENE/gffcomp_outs
 mkdir -p $GENE/temp_files
 
-#filter reference files 
-echo "Extracting chromosome from genome references"
+# filter reference files 
+# index genome fasta
+
+echo "Indexing and filtering reference files"
+
 # GTF
 grep ${ENSG_ID} ${ANNA_GTF} > $GENE/temp_files/filt_chr.gtf
 ANNA_GTF_filt=$GENE/temp_files/filt_chr.gtf
 
 # FASTA
-samtools faidx ${REF_GENOME_FN} ${chr} > $GENE/temp_files/filt_chr.fa
+samtools faidx ${REF_GENOME_FN} ${chr} -o $GENE/temp_files/filt_chr.fa
 REF_GENOME_FN_filt=$GENE/temp_files/filt_chr.fa
 
-# define max intron length
-if [ -z "$max_intron_length" ]; then
-    max_intron_length="400" # Set to the default value if max_intron_length is empty
-fi
-
-# define functions
 
 ####have a new function to check that fastq(.gz) and fasta files are in the FASTA DIR and that FASTA dir exists
-
 function check_for_fastq_or_fasta_files() {
 	
 	if [ -d "$FASTA" ]; then
@@ -72,14 +61,12 @@ function check_for_fastq_or_fasta_files() {
         echo "Directory not found: $directory"
         exit 1  # Quit the script with an error code (adjust as needed)
     fi
+    
 }
 
 
-check_for_fastq_or_fasta_files
 
-############
-#new downsample_function
-
+# new downsample_function
 function downsampling_function() {
 	if [ "$downsampling" == TRUE ]; then
 		echo "Downsampling all barcodes"
@@ -100,36 +87,41 @@ function downsampling_function() {
 			# Clean up the combined file
 			rm $FASTA/${subdir}_cat.fastq
 
-			for filename in $FASTA/$subdir; do
+			for filename in $FASTA/$subdir
+      do
+      
 				base=$(basename "$filename" .fastq)
 				echo "On sample $base"
 				
 				# If you still need to do something with individual files, you can do it here.
 				# For example, you may want to move the original files to a different directory.
-				
 			done
 		done
 	fi
 }
 
+
+# unsure if this function works
 function read_per_barcode_count_function() {
 	if [ "$downsampling" == TRUE ];
 	then
 
-	echo "Creating a temporary file with number of pass reads in each barcode post-downsampling"
+		#echo "Creating a temporary file with number of pass reads in each barcode post-downsampling"
 
-		for filename in $FASTA/*.fa
-		do
+	for filename in $FASTA/*.fa
+	do
+		
 		base=$(basename $filename .fa)
 		echo "On sample $base"
 
 		grep -c "^>" $FASTA/$reads_per_barcode_post_downsampling/${base}.fa >> $GENE/no_of_reads_barcodewise_postdwnsmp_tmp.txt
 
-		done
+	done
 
-	else
+	elif [ "$downsampling" == FALSE ];
+	then
 
-	echo "Creating a temporary file with number of pass reads in each barcode"
+		#echo "Creating a temporary file with number of pass reads in each barcode"
 
 		for filename in $FASTA/*.fa
 		do
@@ -142,9 +134,8 @@ function read_per_barcode_count_function() {
 
 	fi
 
-	echo "Creating metrics for the report"
-
-	num_of_barcodes=$( ls -lh $FASTA | wc -l )
+	# report metrics
+	num_of_barcodes=$( ls -lh $FASTA/*.f* | wc -l )
 	#total_reads_pass=$(awk '{ sum += $1 } END { print sum }' $GENE/no_of_reads_pass_barcodewise_tmp.txt)
 	#total_reads_pass_post_dwnsmp=$(awk '{ sum += $1 } END { print sum }' $GENE/no_of_reads_barcodewise_postdwnsmp_tmp.txt)
 	total_reads=$(awk '{ sum += $1 } END { print sum }' $GENE/temp_files/no_of_reads_barcodewise_tmp.txt)
@@ -153,61 +144,64 @@ function read_per_barcode_count_function() {
 }
 
 function mapping_genome_function() {
-	if [ "$downsampling" == TRUE ];
+	# define max intron length for minimap2
+  if [ -z "$max_intron_length" ]; then
+    max_intron_length="400" # Set to the default value if max_intron_length is empty
+  fi
+  
+  if [ "$downsampling" == TRUE ];
 	then
 
-	echo "Aligning pass reads to "${chr}""
+		echo "Aligning pass reads to $chr"
 
 		for filename in $FASTA/$reads_per_barcode_post_downsampling/*.fa*
 		do
-		base=$(basename $filename *.fa*)
-		echo "On sample $base"
 
-		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$reads_per_barcode_post_downsampling/*.fa* > $GENE/minimap2/${base}.sam
-		samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
-		samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
-		
+      base=$(basename $filename *.fa*)
+      echo "On sample $base"
+
+      minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$reads_per_barcode_post_downsampling/*.fa* > $GENE/minimap2/${base}.sam
+      samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
+      samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
+
 		done
 
-		samtools merge -f $GENE/minimap2/$GENE_pri_merged.bam $GENE/minimap2/*_pri_sorted.bam
-		samtools merge -f $GENE/minimap2/$GENE_merged.bam $GENE/minimap2/*_sorted.bam
-
-		samtools index $GENE/minimap2/$GENE_pri_merged.bam
-		samtools index $GENE/minimap2/$GENE_merged.bam
-
-	fi
 	# should be else if, not new if function
-	if [ "$downsampling" == FALSE ];
+	elif [ "$downsampling" == FALSE ];
 	then
+		
+		echo "Aligning pass reads to $chr"
 
-	echo "Aligning pass reads to $chr"
 
 		for filename in $FASTA/*.fa*
 		do
-		base=$(basename $filename *.fa*)
-		echo "On sample $base"
+    
+      base=$(basename $filename *.fa*)
+      echo "On sample $base"
 
-		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/${base}.fa* > $GENE/minimap2/${base}.sam
-		samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
-		samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
+      minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/${base}.fa* > $GENE/minimap2/${base}.sam
+      samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
+      samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
 
 		done
-
-		samtools merge -f $GENE/minimap2/$GENE_pri_merged.bam $GENE/minimap2/*_pri_sorted.bam
-		samtools merge -f $GENE/minimap2/$GENE_merged.bam $GENE/minimap2/*_sorted.bam
-
-		samtools index $GENE/minimap2/$GENE_pri_merged.bam
-		samtools index $GENE/minimap2/$GENE_merged.bam
+    
 	fi
+	
+	samtools merge -f $GENE/minimap2/$GENE_pri_merged.bam $GENE/minimap2/*_pri_sorted.bam
+	samtools merge -f $GENE/minimap2/$GENE_merged.bam $GENE/minimap2/*_sorted.bam
 
+	samtools index $GENE/minimap2/$GENE_pri_merged.bam
+	samtools index $GENE/minimap2/$GENE_merged.bam
+	
 	rm $GENE/minimap2/*.sam
-
+  
 }
 
 function run_bambu_function() {
-	echo "Creating transcripts with bambu"
+	echo "Finding novel isoforms with Bambu"
 
-		Rscript $DA_PATH/scripts/bambu_tx_discovery.R -b $GENE/minimap2/$GENE_pri_merged.bam \
+	# if bambu is the latest version, NDR has to be in opts list, if not, NDR is its own arg
+	Rscript $SCRIPT_DIR/scripts/bambu_tx_discovery.R -b $GENE/minimap2/$GENE_pri_merged.bam \
 		-f $REF_GENOME_FN_filt \
 		-t $ANNA_GTF_filt \
 		-r $readFraction_for_bambu \
@@ -221,129 +215,124 @@ function run_bambu_function() {
 function primer_site_function() {
 	if [ "$primer_site_based_filter" == TRUE ];
 	then
-		# currently broken, have only updated count filtering based on primer site filter == FALSE
-		echo "primer_site_based_filter = TRUE, filtering primer based on start and end coordinates provided and CPM threshold"
-
-			## Create a 5bp window around the 3' sites of the primers
-			((F1_end_5=F1_end-5))
-			((R1_start_5=R1_start+5))
-
-		echo "Creating a primer window"
-
-			echo $chr$'\t'$F1_end_5$'\t'$F1_end > $GENE/bambu/F1_window_tmp.bed
-			echo $chr$'\t'$R1_start$'\t'$R1_start_5 > $GENE/bambu/R1_window_tmp.bed
-
-		echo "Filtering transcripts with bedtools based on primer window"
-
-			bedtools subtract -A -a $GENE/bambu/extended_annotations.gtf -b $GENE/bambu/F1_window_tmp.bed | bedtools subtract -A -a - -b $GENE/bambu/R1_window_tmp.bed > $GENE/filtered_transcripts/extended_annotations_no_primer_overlap.gtf
-			bedtools intersect -wa -a $GENE/bambu/extended_annotations.gtf -b $GENE/bambu/F1_window_tmp.bed | bedtools intersect -wa -a - -b $GENE/bambu/R1_window_tmp.bed > $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf
-
-		echo "Extracting transcripts (names) that overlap the primer window"
-
-			cat $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $GENE/filtered_transcripts/transcripts_primer_overlap.txt
-
-		echo "Extracting transcripts (names) that overlap the primer window and meet the CPM threshold"
-
-			cat $GENE/bambu/CPM.txt | grep -wf $GENE/filtered_transcripts/transcripts_primer_overlap.txt | awk '{ if ($2 >= 1) print }' > $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1.txt
-			cat $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1.txt | awk '{ print $1 }' > $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt
-
-		echo "Filtering transcripts based on primer window overlap and CPM threshold"
-
-			cat $GENE/bambu/extended_annotations.gtf | grep -wf $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt > $GENE/filtered_transcripts/extended_annotations_primer_overlap_CPM_more_than_1.gtf
-			cat $GENE/bambu/extended_annotations.gtf | grep -v -wf $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt > $GENE/discarded_transcripts/extended_annotations_primer_overlap_CPM_more_than_1_discarded.gtf
-
-			# Removing temporary files
-			rm $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1_list_tmp.txt
-
-		echo "Editing filtered GTF files for use with IsoMix"
-
-			sed 's/tx./tx/g' $GENE/filtered_transcripts/extended_annotations_primer_overlap_CPM_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
-			cat $GENE/filtered_transcripts/transcripts_primer_overlap_CPM_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
-
-		echo "Creating a metatranscriptome based on the filtered transcripts"
-
-			gffread -w $GENE/filtered_transcripts/extended_annotations_filtered.fa -g $REF_GENOME_FN_filt $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
-			salmon index -t $GENE/filtered_transcripts/extended_annotations_filtered.fa -i $GENE/filtered_transcripts -k 31
-
-	else
-
-		echo "primer_site_based_filter = FALSE, filtering primer based on read count threshold only"
-		echo "Extracting transcripts that meet the read threshold"
-
-			cat $GENE/bambu/bambu_read_counts.txt |  awk '{ if ($2 >= 5) print }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt
-			cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | awk '{ print $1 }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
-
-		echo "Filtering transcripts based on CPM threshold"
-
-			cat $GENE/bambu/extended_annotations.gtf | grep -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/bambu/extended_annotations_read_count_more_than_1.gtf
-			cat $GENE/bambu/extended_annotations.gtf | grep -v -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/discarded_transcripts/extended_annotations_read_count_more_than_1_discarded.gtf
+		
+		echo "Primer site filtering on"
+		# used to be a 5bp window created around primers, do we need this?
+		# write out isoforms which don't match any primers
+		bedtools subtract -A -a $GENE/bambu/extended_annotations.gtf -b $forward_primers | bedtools subtract -A -a - -b $reverse_primers > $GENE/filtered_transcripts/extended_annotations_no_primer_overlap.gtf
 			
-			# Removing temporary files 
-			rm $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
+		# write out isoforms which do match primers
+		bedtools intersect -wa -u -a $GENE/bambu/extended_annotations.gtf -b $forward_primers | bedtools intersect -wa -a - -b $reverse_primers > $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf
 
-		echo "Editing filtered GTF files for use with IsoMix"
+		cat $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $GENE/filtered_transcripts/transcripts_primer_overlap.txt
 
-			sed 's/tx./tx/g' $GENE/bambu/extended_annotations_read_count_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
-			cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
-
-		echo "Creating a metatranscriptome based on the filtered transcripts"
-
-			gffread -w $GENE/filtered_transcripts/filtered_transcripts.fa -g $REF_GENOME_FN_filt $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
-			salmon index -t $GENE/filtered_transcripts/filtered_transcripts.fa -i $GENE/filtered_transcripts -k 31
-
-		echo "Creating metrics for the report"
-		#not ENST
-			filtered_transcripts_known=$( cat $GENE/filtered_transcripts/filtered_transcripts.txt | grep ENST | grep -v _ | wc -l )
-			filtered_transcripts_novel=$( cat $GENE/filtered_transcripts/filtered_transcripts.txt | grep tx | grep -v _ | wc -l )
-
+	elif [ "$primer_site_based_filter" == FALSE ];
+	then
+		echo "Primer site filtering off"
 	fi
+}
+
+function read_count_function_first_pass() {
+
+	if [ "$primer_site_based_filter" == TRUE ];
+	then
+		cat $GENE/bambu/bambu_read_counts.txt | grep -wf $GENE/filtered_transcripts/transcripts_primer_overlap.txt | awk '{ if ($2 > 1) print }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt
+	elif [ "$primer_site_based_filter" == FALSE ];
+	then
+		cat $GENE/bambu/bambu_read_counts.txt |  awk '{ if ($2 > 1) print }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt
+	fi
+
+	cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | awk '{ print $1 }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
+
+	cat $GENE/bambu/extended_annotations.gtf | grep -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/bambu/extended_annotations_read_count_more_than_1.gtf
+	cat $GENE/bambu/extended_annotations.gtf | grep -v -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/discarded_transcripts/extended_annotations_read_count_more_than_1_discarded.gtf
+			
+	# Removing temporary files 
+	rm $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
+
+	sed 's/tx./tx/g' $GENE/bambu/extended_annotations_read_count_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
+	cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
+
+}
+
+function create_metatranscriptome() {
+	echo "Creating a metatranscriptome based on the filtered transcripts"
+
+	gffread -w $GENE/filtered_transcripts/filtered_transcripts.fa -g $REF_GENOME_FN_filt $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
+	salmon index -t $GENE/filtered_transcripts/filtered_transcripts.fa -i $GENE/filtered_transcripts -k 31
+
 }
 
 function remapping_function() {
 	if [ "$downsampling" == FALSE ];
 	then
 
-		echo "Quantifying transcripts (mapping based mode in salmon)"
+		echo "Quantifying with salmon"
 
 		for filename in $FASTA/*.fa*
 		do
-		base=$(basename $filename .fa)
-		echo "On sample $base"
 
-		salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $FASTA/${base}.fa -o $GENE/metagene_salmon/${base}
+			base=$(basename $filename .fa)
+			echo "On sample $base"
+
+			salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $FASTA/${base}.fa -o $GENE/metagene_salmon/${base}
 
 		done
 
-	else 
+	elif [ "$downsampling" == TRUE ];
+	then
 
-	echo "Quantifying transcripts (mapping based mode in salmon)"
+		echo "Quantifying with salmon"
 
 		for filename in $FASTA/*.fa*
 		do
-		base=$(basename $filename .fa)
-		echo "On sample $base"
 
-		salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $FASTA/$reads_per_barcode_post_downsampling/${base}.fa -o $GENE/metagene_salmon/${base}
+			base=$(basename $filename .fa)
+			echo "On sample $base"
+
+			salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $FASTA/$reads_per_barcode_post_downsampling/${base}.fa -o $GENE/metagene_salmon/${base}
+		
 		done
 	fi
 }
 
 function combine_quants_function() {
-	echo "Generating count matrix"
-	cd $GENE
-	Rscript $DA_PATH/scripts/combine_salmon_quants.R $ENSG_ID
-	cd ..
+	echo "Generating isoform counts"
+	Rscript $SCRIPT_DIR/scripts/combine_salmon_quants.R -e $ENSG_ID -m $read_count_minimum -o $GENE
+}
+
+function read_count_function_second_pass() {
+	echo "Filtering isoforms with read count minimum of: $read_count_minimum" 
+	# create list in text file of isoforms that passed threshold
+	# command uses _ and , as sep, prints first column of tx names, removes the word Bambu in tx names, and removes the column header
+	cat $GENE/${ENSG_ID}_discoAnt_counts.csv | awk -F '[_,]' '{print $1}' | sed 's/Bambu//g' | tail -n +2 > $GENE/filtered_transcripts/transcripts_read_counts_second_pass_list_tmp.txt
+	# filter GTF based on isoforms 
+	cat $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf | grep -wif $GENE/filtered_transcripts/transcripts_read_counts_second_pass_list_tmp.txt > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
+
+	# Removing temporary files 
+	#rm $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_second_pass_list_tmp.txt
+	
+	#echo "Editing filtered GTF files for use with IsoMix"
+	#sed 's/tx./tx/g' $GENE/bambu/extended_annotations_read_count_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
+	#cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
+	filtered_transcripts_known=$( cat $GENE/filtered_transcripts/transcripts_read_counts_second_pass_list_tmp.txt | grep -vi tx | wc -l )
+	filtered_transcripts_novel=$( cat $GENE/filtered_transcripts/transcripts_read_counts_second_pass_list_tmp.txt | grep -i tx | wc -l )
+
 }
 
 function gffcomp_function() {
-	echo "Annotating transcripts with gffcompare"
+	echo "Annotating isoforms with gffcompare"
 	gffcompare -r $ANNA_GTF_filt -o $GENE/gffcomp_outs/gffcomp $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
-	mv $GENE/gffcomp.* $GENE/gffcomp_outs/ 
+	mv $GENE/gffcomp.* $GENE/gffcomp_outs/
 }
 
 function sqanti_function() {
-	echo "Annotating transcripts with SQANTI"
-	python $DA_PATH/scripts/SQANTI3/sqanti3_qc.py \
+  # source python paths for cDNA Cupcake to run with SQANTI
+  export PYTHONPATH="$SCRIPT_DIR/scripts/cDNA_Cupcake/sequence/:$PYTHONPATH"
+  export PYTHONPATH="$SCRIPT_DIR/scripts/cDNA_Cupcake/:$PYTHONPATH"
+  
+	echo "Annotating isoforms with SQANTI"
+	python $SCRIPT_DIR/scripts/SQANTI3/sqanti3_qc.py \
 		$GENE/${ENSG_ID}_discoAnt_isoforms.gtf \
 		$ANNA_GTF_filt $REF_GENOME_FN_filt \
 		-d $GENE/sqanti -o $GENE --report skip
@@ -355,31 +344,30 @@ function generate_report_function() {
 	cat << EOT >> $GENE/${ENSG_ID}_discoAnt_report.txt
 	`date`
 
-	Number of barcodes: $num_of_barcodes
+	Number of input samples/barcodes: $num_of_barcodes
 	Number of reads across barcodes: $total_reads_pass
 
-	Downsampling: $downsampling
+	Filters applied:
+		Primer site based filter: $primer_site_based_filter
+		Downsampling: $downsampling
+		Read count minimum: $read_count_minimum
+
 	Number of reads across barcodes post-downsampling: $total_reads_pass_post_dwnsmp
 
-	Read support for transcripts: 
+	Read support for isoforms: to_fix?
 
-	Filters applied:
-	CPM threshold: ## recommended value is 1
-	Primer site based filter: $primer_site_based_filter
-
-	Known transcripts post filtering: $filtered_transcripts_known
-	Novel transcrupts post filtering: $filtered_transcripts_novel
+	Known isoforms post filtering: $filtered_transcripts_known
+	Novel isoforms post filtering: $filtered_transcripts_novel
 
 EOT
 }
 
 
 
-# run pipeline
-
-##########                                                  ##########
 ########## 0. Counting the number of reads and downsampling ##########
-##########                                                  ##########
+
+# check filetypes
+check_for_fastq_or_fasta_files
 
 # Downsampling
 downsampling_function
@@ -387,57 +375,69 @@ downsampling_function
 #### Count number of reads in each barcode 
 #read_per_barcode_count_function
 
-##########                                                    ##########
+
 ########## 1. Aligning sample fasta files to reference genome ##########
-##########                                                    ##########
 
 #### run mapping and suppress output
 mapping_genome_function
 
-##########                                                       ##########
+
 ########## 2.a. Correcting and collapsing transcripts with bambu ##########
-##########                                                       ##########
 
 # suppressing output here breaks it for some reason...
 ##### if suppressed it breaks the primer_site_function part
 run_bambu_function
 
-##########                                                               ##########
-########## 2.b. Filtering bambu transcripts and creating a transcriptome ##########
-##########                                                               ##########
 
-##### Primer site + CPM based filter 
+########## 2.b. Filtering bambu transcripts and creating a transcriptome ##########
+
+# Primer site filter
 primer_site_function
 
-##########                                                              ##########
+# Read count filter 
+read_count_function_first_pass
+
+# metatranscriptome with salmon
+create_metatranscriptome
+
+
 ########## 2.c. Re-aligning and quantifying filtered bambu transcripts  ##########
-##########                                                              ##########
 
-remapping_function #> /dev/null 2>&1 & 
-##########                                ##########
+# remap to salmon metatranscriptome
+remapping_function
+
 ########## 2.d. Generating count matrix   ##########
-##########                                ##########
 
+# Rscript to combine quant.sf files and filter by read min counts
 combine_quants_function
 
-##########                           ##########
+# some zero count isoforms result after the secound round of quants with salmon
+read_count_function_second_pass
+
+
 ########## 3. Annotating transcripts ##########
-##########                           ##########
 
+# run with gffcompare
 gffcomp_function
-sqanti_function
 
-##########           ##########
+# run with SQANTI
+# remove comment if working SQANTI env
+#sqanti_function
+
+
 ########## 4. Report ##########
-##########           ##########
 
+# make report txt file
 generate_report_function
 
-## finished functions
 
+########## Finished ##########
 
-#removing temp files
+# removing temp files
+# currently commented out while de-bugging
+# more of the extra files should be put into tmp and deleted
 #rm -rf $GENE/temp_files
+#rm $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
 
 echo "
 ██████  ██ ███████  ██████  ██████   █████  ███    ██ ████████      ██████  ██████  ███    ███ ██████  ██      ███████ ████████ ███████ 

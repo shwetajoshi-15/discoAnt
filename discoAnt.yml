@@ -6,28 +6,29 @@ channels:
   - r
   - defaults
 dependencies:
-  - bcbio-gff
+#  - bcbio-gff
   - bedtools
-  - biopython=1.79
-  - bx-python
+  - samtools
+  - salmon
   - gffread
   - gffcompare
   - minimap2
-  - numpy
-  - openssl
-  - pybedtools
-  - pysam
   - python>=3.7.6
-  - r>=3.2.0
+  - r>=4.0.0
   - r-biocmanager
   - r-dplyr
   - r-stringi
   - r-optparse
-  - samtools
-  - scipy
-  - salmon=0.14.2
   - bioconductor-bambu
-  - cython
-  - scikit-learn
-  #- r-ggplot2
-  #- r-ggplotify
+# below are all required for SQANTI only
+#  - numpy
+#  - openssl
+#  - pybedtools
+#  - pysam
+#  - scipy
+#  - cython
+#  - scikit-learn
+#  - r-ggplot2
+#  - r-ggplotify
+#  - biopython=1.79
+#  - bx-python
