@@ -109,7 +109,6 @@ function concat_files() {
     
 }
 
-# new downsample_function
 function downsampling_function() {
 
 	if [ "$downsampling" == TRUE ]
@@ -159,7 +158,6 @@ function downsampling_function() {
 	#read_supp_for_transcript=$(echo $total_reads \* $readFraction_for_bambu  | bc)
 
 }
-
 
 function mapping_genome_function() {
   # define max intron length for minimap2
@@ -213,17 +211,22 @@ function run_bambu_function() {
 		-t $ANNA_GTF_filt \
 		-o $GENE/bambu
 
+
 	if [ -e "$GENE/bambu/extended_annotations.gtf" ]
-  	then 
-		:
- 	else
+	then
+		if [ $(stat -c %s "$GENE/bambu/extended_annotations.gtf") -eq 0 ]
+		then
+			echo "Failed to create Bambu annotations, check logs file"
+			exit 1
+		else
+			:
+		fi
+	else
 		echo "Failed to create Bambu annotations, check logs file"
 		exit 1
-  	fi
+	fi
 
-	# what are these counts for? Don't think we need.
-	#awk 'FNR==NR{s+=$2;next;} {printf "%s\t%s\t%s%%\n",$1,$2,100*$2/s}' $GENE/bambu/uniqueCounts.txt $GENE/bambu/uniqueCounts.txt > $GENE/bambu/uniqueCounts_perc.txt
-	#awk 'FNR==NR{s+=$2;next;} {printf "%s\t%s\t%s%%\n",$1,$2,100*$2/s}' $GENE/bambu/CPM.txt $GENE/bambu/CPM.txt > $GENE/bambu/CPM_perc.txt
+	
 }
 
 function primer_site_function() {
@@ -241,12 +244,18 @@ function primer_site_function() {
 		cat $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $GENE/filtered_transcripts/transcripts_primer_overlap.txt
 		
 		if [ -e "$GENE/filtered_transcripts/transcripts_primer_overlap.txt" ]
-  		then 
-			:
- 		else
+		then 	
+			if [ $(stat -c %s "$GENE/filtered_transcripts/transcripts_primer_overlap.txt") -eq 0 ]
+			then
+				echo "Failed to filter based on primers, check logs file"
+				exit 1
+			else
+				:
+			fi
+		else
 			echo "Failed to filter based on primers, check logs file"
 			exit 1
-  		fi
+		fi
 
 		# Count the number of isoforms kept after primer filtering \
 		count_file1=$(awk '$3 == "transcript" {count++} END {print count}' "$GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf")
@@ -283,12 +292,19 @@ function read_count_function_first_pass() {
 	cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
 
 	if [ -e "$GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf" ]
-  	then 
-		:
- 	else
+	then 	
+		if [ $(stat -c %s "$GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf") -eq 0 ]
+		then
+			echo "Read count threshold first pass failed, check logs file"
+			exit 1
+		else
+			:
+		fi
+	else
 		echo "Read count threshold first pass failed, check logs file"
 		exit 1
-  	fi
+	fi
+
 }
 
 function create_metatranscriptome() {
@@ -329,17 +345,19 @@ function remapping_function() {
 	}
 
 	redirect_output running_salmon
-	if [ -d "$$GENE/metagene_salmon" ]
-  	then 
-		if [ "$(ls -A $DIR)" ] 
+	
+	if [ -d "$GENE/metagene_salmon" ]
+  	then
+		if [ "$(ls -A $GENE/metagene_salmon)" ] 
 		then
-     		: 
+     		:
 		else
     		echo "Failed to quantify with salmon, check logs file"
 			exit 1
 		fi
  	else
-		:
+		echo "Failed to quantify with salmon, check logs file"
+		exit 1
   	fi
 
 }
@@ -372,12 +390,19 @@ function read_count_function_second_pass() {
 	filtered_transcripts_novel=$( cat $GENE/filtered_transcripts/transcripts_read_counts_second_pass_list_tmp.txt | grep -i tx | wc -l )
 
 	if [ -e "$GENE/${ENSG_ID}_discoAnt_isoforms.gtf" ]
-  	then 
-		:
- 	else
+	then 	
+		if [ $(stat -c %s "$GENE/${ENSG_ID}_discoAnt_isoforms.gtf") -eq 0 ]
+		then
+			echo "Read count threshold second pass failed, check logs file"
+			exit 1
+		else
+			:
+		fi
+	else
 		echo "Read count threshold second pass failed, check logs file"
 		exit 1
-  	fi
+	fi
+
 }
 
 function gffcomp_function() {
