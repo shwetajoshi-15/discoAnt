@@ -14,21 +14,20 @@ dependencies:
   - gffcompare
   - minimap2
   - python>=3.7.6
-  - r>=4.0.0
+  - r>=4.1 # check
   - r-biocmanager
   - r-dplyr
   - r-stringi
   - r-optparse
-  - bioconductor-bambu
-# below are all required for SQANTI only
-#  - numpy
-#  - openssl
-#  - pybedtools
-#  - pysam
-#  - scipy
-#  - cython
-#  - scikit-learn
-#  - r-ggplot2
-#  - r-ggplotify
-#  - biopython=1.79
-#  - bx-python
+  - bioconductor-bambu=3.2.4
+  - numpy
+  - openssl
+  - pybedtools
+  - pysam
+  - scipy
+  - cython
+  - scikit-learn
+  - r-ggplot2
+  - r-ggplotify
+  - biopython=1.79
+  - bx-python

@@ -29,6 +29,7 @@ suppressWarnings({
     stop("At least one argument must be supplied (input file).n", call.=FALSE)
   }
   
+  
   test.bam <- (opt$bam)
   fa.file <- (opt$fasta)
   gtf.file <- (opt$annotation)
