@@ -78,7 +78,7 @@ function concat_files() {
 	mkdir $GENE/samples/reads
 
 	# run on all subdirectories in $FASTA
-	find "$FASTA" -type d -mindepth 1 -maxdepth 1 | while read -r dir
+	find "$FASTA" -mindepth 1 -maxdepth 1 -type d | while read -r dir
 	do
 
 		# Use basename to extract just the directory name
@@ -184,7 +184,6 @@ function run_bambu_function() {
 	Rscript $SCRIPT_DIR/scripts/bambu_tx_discovery.R -b $GENE/minimap2/$GENE_pri_merged.bam \
 		-f $REF_GENOME_FN_filt \
 		-t $ANNA_GTF_filt \
-		-r $readFraction_for_bambu \
 		-o $GENE/bambu
 
 	# what are these counts for? Don't think we need.

@@ -17,8 +17,6 @@ suppressWarnings({
     make_option(c("-t", "--annotation"), type="character", default=NULL,
         help="reference annotations gtf"),
     make_option(c("-o", "--output_dir"), type="character", default=NULL,
-        help="path to output directory"),
-    make_option(c("-r", "--readFraction_for_bambu"), type="character", default=NULL,
         help="path to output directory")
 
     )
@@ -38,7 +36,7 @@ suppressWarnings({
     bambuAnnotations <- prepareAnnotations(gtf.file)
 
     #se <- bambu(reads = test.bam, annotations = bambuAnnotations, genome = fa.file, NDR=1, opt.discovery = list(min.readFractionByGene=0.001))
-    se <- bambu(reads = test.bam, annotations = bambuAnnotations, genome = fa.file, opt.discovery = list(max.txNDR=1, min.readFractionByGene=0.001))
+    se <- bambu(reads = test.bam, annotations = bambuAnnotations, genome = fa.file, opt.discovery, NDR=1, list(min.readFractionByGene=0.001))
 
 
     writeBambuOutput(se, opt$output_dir)
