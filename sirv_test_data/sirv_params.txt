@@ -28,3 +28,7 @@ forward_primers="sirv_test_data/sirv_forward.bed"
 reverse_primers="sirv_test_data/sirv_reverse.bed"
 ##
 
+## SIRV Data ##
+# if you have SIRV data, set this to no
+splice_flank=no
+##

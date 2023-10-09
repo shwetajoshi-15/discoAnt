@@ -3,8 +3,7 @@
 # get directory of discoAnt script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-# update to v3?
-echo "discoAnt v2.1"
+
 
 # source parameters file
 source ${1}
@@ -17,6 +16,8 @@ echo \
 ██   ██ ██      ██ ██      ██    ██ ██   ██ ██  ██ ██    ██    
 ██████  ██ ███████  ██████  ██████  ██   ██ ██   ████    ██ 
 "
+# update to v3?
+echo "v2.1"
 
 # add section here to check if the $GENE directory already exists, if it does, exit
 if [ -d $GENE ] 
@@ -28,12 +29,11 @@ fi
 # make directories
 mkdir -p $GENE
 mkdir -p $GENE/samples
-mkdir -p $GENE/minimap2
+mkdir -p $GENE/mapped_data
 mkdir -p $GENE/bambu
-mkdir -p $GENE/metagene_salmon
-mkdir -p $GENE/filtered_transcripts
-mkdir -p $GENE/discarded_transcripts
-mkdir -p $GENE/gffcomp_outs
+mkdir -p $GENE/salmon_quants
+mkdir -p $GENE/updated_transcriptome
+mkdir -p $GENE/annotated_isoforms
 mkdir -p $GENE/temp_files
 
 # filter reference files and index reference genome
@@ -165,6 +165,11 @@ function mapping_genome_function() {
   then
     max_intron_length="400" # Set to the default value if max_intron_length is empty
   fi
+
+  if [ -z "$splice_flank" ] 
+  then
+    splice_flank="yes" # Set to the default value
+  fi
   
   echo "Mapping reads..."
   for filename in "$path_to_reads"/*.fa
@@ -174,59 +179,54 @@ function mapping_genome_function() {
     sample_reads="${base%.*}" 
     
 	map_reads_minimap2() {
-    	minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $GENE/samples/reads/${sample_reads}.fa > $GENE/minimap2/${sample_reads}.sam
-
+    	minimap2 -ax splice -G"${max_intron_length}"k --splice-flank="$splice_flank" --eqx $REF_GENOME_FN_filt $GENE/samples/reads/${sample_reads}.fa | samtools view -bh > $GENE/mapped_data/${sample_reads}.bam
 	}
+
 	redirect_output map_reads_minimap2
 	
-	samtools view -S -h -b $GENE/minimap2/${sample_reads}.sam | samtools sort - > $GENE/minimap2/${sample_reads}_sorted.bam
-  	samtools view -h -F 2308 $GENE/minimap2/${sample_reads}_sorted.bam | samtools sort - > $GENE/minimap2/${sample_reads}_pri_sorted.bam
+  	samtools view -h -F 2308 $GENE/mapped_data/${sample_reads}.bam | samtools sort - > $GENE/mapped_data/${sample_reads}_primary_sorted.bam
 
   done
 
+  samtools merge -o $GENE/mapped_data/$GENE_primary_merged.bam $GENE/mapped_data/*sorted.bam
+  samtools index $GENE/mapped_data/$GENE_primary_merged.bam
 
-  samtools merge -f $GENE/minimap2/$GENE_pri_merged.bam $GENE/minimap2/*_pri_sorted.bam
-
-  #samtools merge -f $GENE/minimap2/$GENE_merged.bam $GENE/minimap2/*_sorted.bam
-
-  samtools index $GENE/minimap2/$GENE_pri_merged.bam
-  #samtools index $GENE/minimap2/$GENE_merged.bam
-   
-  if [ -e "$GENE/minimap2/$GENE_pri_merged.bam.bai" ]
+  if [ -e "$GENE/mapped_data/$GENE_primary_merged.bam.bai" ]
   then 
 	:
   else
 	echo "Failed to create BAM index, check logs file"
 	exit 1
   fi
-  
+
+  # counts total reads in a BAM file, for report?
+  number_reads_total=$(samtools view $GENE/mapped_data/$GENE_primary_merged.bam | awk '{print $1}' | sort | uniq | wc -l)
+
 }
 
 function run_bambu_function() {
 	echo "Identifying novel isoforms with Bambu..."
 
 	# if bambu is the latest version, NDR has to be in opts list, if not, NDR is its own arg
-	redirect_output Rscript $SCRIPT_DIR/scripts/bambu_tx_discovery.R -b $GENE/minimap2/$GENE_pri_merged.bam \
+	redirect_output Rscript $SCRIPT_DIR/scripts/bambu_tx_discovery.R -b $GENE/mapped_data/$GENE_primary_merged.bam \
 		-f $REF_GENOME_FN_filt \
 		-t $ANNA_GTF_filt \
 		-o $GENE/bambu
 
-
 	if [ -e "$GENE/bambu/extended_annotations.gtf" ]
 	then
-		if [ $(stat -c %s "$GENE/bambu/extended_annotations.gtf") -eq 0 ]
+		if [ -s "$GENE/bambu/extended_annotations.gtf" ]
 		then
+			:
+		else
 			echo "Failed to create Bambu annotations, check logs file"
 			exit 1
-		else
-			:
 		fi
 	else
 		echo "Failed to create Bambu annotations, check logs file"
 		exit 1
 	fi
 
-	
 }
 
 function primer_site_function() {
@@ -239,18 +239,18 @@ function primer_site_function() {
 		#bedtools subtract -A -a $GENE/bambu/extended_annotations.gtf -b $forward_primers | bedtools subtract -A -a - -b $reverse_primers > $GENE/filtered_transcripts/extended_annotations_no_primer_overlap.gtf
 		
 		# write out isoforms which do match primers
-		bedtools intersect -wa -u -a $GENE/bambu/extended_annotations.gtf -b $forward_primers | bedtools intersect -wa -a - -b $reverse_primers > $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf
+		bedtools intersect -wa -u -a $GENE/bambu/extended_annotations.gtf -b $forward_primers | bedtools intersect -wa -a - -b $reverse_primers > $GENE/temp_files/extended_annotations_with_primer_overlap.gtf
 
-		cat $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $GENE/filtered_transcripts/transcripts_primer_overlap.txt
+		cat $GENE/temp_files/extended_annotations_with_primer_overlap.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $GENE/temp_files/transcripts_primer_overlap.txt
 		
-		if [ -e "$GENE/filtered_transcripts/transcripts_primer_overlap.txt" ]
+		if [ -e "$GENE/temp_files/transcripts_primer_overlap.txt" ]
 		then 	
-			if [ $(stat -c %s "$GENE/filtered_transcripts/transcripts_primer_overlap.txt") -eq 0 ]
+			if [ -s "$GENE/temp_files/transcripts_primer_overlap.txt" ]
 			then
+				:
+			else
 				echo "Failed to filter based on primers, check logs file"
 				exit 1
-			else
-				:
 			fi
 		else
 			echo "Failed to filter based on primers, check logs file"
@@ -258,7 +258,7 @@ function primer_site_function() {
 		fi
 
 		# Count the number of isoforms kept after primer filtering \
-		count_file1=$(awk '$3 == "transcript" {count++} END {print count}' "$GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf")
+		count_file1=$(awk '$3 == "transcript" {count++} END {print count}' "$GENE/temp_files/extended_annotations_with_primer_overlap.gtf")
 		count_file2=$(awk '$3 == "transcript" {count++} END {print count}' "$GENE/bambu/extended_annotations.gtf")
 
 		# Calculate 20% of the lines in file2
@@ -277,28 +277,28 @@ function read_count_function_first_pass() {
 
 	if [ "$primer_site_based_filter" == TRUE ]
 	then
-		cat $GENE/bambu/bambu_read_counts.txt | grep -wf $GENE/filtered_transcripts/transcripts_primer_overlap.txt | awk '{ if ($2 > 1) print }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt
+		cat $GENE/bambu/bambu_read_counts.txt | grep -wf $GENE/temp_files/transcripts_primer_overlap.txt | awk '{ if ($2 > 1) print }' > $GENE/temp_files/transcripts_read_counts_more_than_1.txt
 	elif [ "$primer_site_based_filter" == FALSE ]
 	then
-		cat $GENE/bambu/bambu_read_counts.txt |  awk '{ if ($2 > 1) print }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt
+		cat $GENE/bambu/bambu_read_counts.txt |  awk '{ if ($2 > 1) print }' > $GENE/temp_files/transcripts_read_counts_more_than_1.txt
 	fi
 
-	cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | awk '{ print $1 }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
+	cat $GENE/temp_files/transcripts_read_counts_more_than_1.txt | awk '{ print $1 }' > $GENE/temp_files/transcripts_read_counts_more_than_1_list_tmp.txt
 
-	cat $GENE/bambu/extended_annotations.gtf | grep -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/bambu/extended_annotations_read_count_more_than_1.gtf
-	cat $GENE/bambu/extended_annotations.gtf | grep -v -wf $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/discarded_transcripts/extended_annotations_read_count_more_than_1_discarded.gtf
+	cat $GENE/bambu/extended_annotations.gtf | grep -wf $GENE/temp_files/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/bambu/extended_annotations_read_count_more_than_1.gtf
+	#cat $GENE/bambu/extended_annotations.gtf | grep -v -wf $GENE/updated_transcriptome/transcripts_read_counts_more_than_1_list_tmp.txt > $GENE/discarded_transcripts/extended_annotations_read_count_more_than_1_discarded.gtf
 
-	sed 's/tx./tx/g' $GENE/bambu/extended_annotations_read_count_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
-	cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
+	sed 's/tx./tx/g' $GENE/bambu/extended_annotations_read_count_more_than_1.gtf > $GENE/temp_files/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
+	cat $GENE/temp_files/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/temp_files/updated_transcriptome.txt
 
-	if [ -e "$GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf" ]
+	if [ -e "$GENE/temp_files/${ENSG_ID}_discoAnt_isoforms_pass1.gtf" ]
 	then 	
-		if [ $(stat -c %s "$GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf") -eq 0 ]
+		if [ -s "$GENE/temp_files/${ENSG_ID}_discoAnt_isoforms_pass1.gtf" ]
 		then
+			:
+		else
 			echo "Read count threshold first pass failed, check logs file"
 			exit 1
-		else
-			:
 		fi
 	else
 		echo "Read count threshold first pass failed, check logs file"
@@ -310,9 +310,9 @@ function read_count_function_first_pass() {
 function create_metatranscriptome() {
 	echo "Creating an updated transcriptome with novel isoforms..."
 
-	redirect_output gffread -w $GENE/filtered_transcripts/filtered_transcripts.fa -g $REF_GENOME_FN_filt $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
+	redirect_output gffread -w $GENE/updated_transcriptome/updated_transcriptome.fa -g $REF_GENOME_FN_filt $GENE/temp_files/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
 	
-	if [ -e "$GENE/filtered_transcripts/filtered_transcripts.fa" ]
+	if [ -e "$GENE/updated_transcriptome/updated_transcriptome.fa" ]
   	then 
 		:
  	else
@@ -320,9 +320,9 @@ function create_metatranscriptome() {
 		exit 1
   	fi
 
-	redirect_output salmon index -t $GENE/filtered_transcripts/filtered_transcripts.fa -i $GENE/filtered_transcripts -k 31
+	redirect_output salmon index -t $GENE/updated_transcriptome/updated_transcriptome.fa -i $GENE/updated_transcriptome -k 31
 	
-	if [ -e "$GENE/filtered_transcripts/versionInfo.json" ]
+	if [ -e "$GENE/updated_transcriptome/versionInfo.json" ]
   	then 
 		:
  	else
@@ -339,16 +339,16 @@ function remapping_function() {
 
 			base=$(basename $filename .fa)
 			
-			salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $path_to_reads/${base}.fa -o $GENE/metagene_salmon/${base}
+			salmon quant --quiet -i $GENE/updated_transcriptome -l A -r $path_to_reads/${base}.fa -o $GENE/salmon_quants/${base}
 
 		done
 	}
 
 	redirect_output running_salmon
 	
-	if [ -d "$GENE/metagene_salmon" ]
+	if [ -d "$GENE/salmon_quants" ]
   	then
-		if [ "$(ls -A $GENE/metagene_salmon)" ] 
+		if [ "$(ls -A $GENE/salmon_quants)" ] 
 		then
      		:
 		else
@@ -376,27 +376,27 @@ function read_count_function_second_pass() {
 
 	# create list in text file of isoforms that passed threshold
 	# command uses _ and , as sep, prints first column of tx names, removes the word Bambu in tx names, and removes the column header
-	cat $GENE/${ENSG_ID}_discoAnt_counts.csv | awk -F '[_,]' '{print $1}' | sed 's/Bambu//g' | tail -n +2 > $GENE/filtered_transcripts/transcripts_read_counts_second_pass_list_tmp.txt
+	cat $GENE/${ENSG_ID}_discoAnt_counts.csv | awk -F '[_,]' '{print $1}' | sed 's/Bambu//g' | tail -n +2 > $GENE/temp_files/transcripts_read_counts_second_pass_list_tmp.txt
 	# filter GTF based on isoforms 
-	cat $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf | grep -wif $GENE/filtered_transcripts/transcripts_read_counts_second_pass_list_tmp.txt > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
+	cat $GENE/temp_files/${ENSG_ID}_discoAnt_isoforms_pass1.gtf | grep -wif $GENE/temp_files/transcripts_read_counts_second_pass_list_tmp.txt > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
 
 	# Removing temporary files 
-	#rm $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_second_pass_list_tmp.txt
+	#rm $GENE/updated_transcriptome/transcripts_read_counts_more_than_1_second_pass_list_tmp.txt
 	
 	#echo "Editing filtered GTF files for use with IsoMix"
 	#sed 's/tx./tx/g' $GENE/bambu/extended_annotations_read_count_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
-	#cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
-	filtered_transcripts_known=$( cat $GENE/filtered_transcripts/transcripts_read_counts_second_pass_list_tmp.txt | grep -vi tx | wc -l )
-	filtered_transcripts_novel=$( cat $GENE/filtered_transcripts/transcripts_read_counts_second_pass_list_tmp.txt | grep -i tx | wc -l )
+	#cat $GENE/updated_transcriptome/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/updated_transcriptome/updated_transcriptome.txt
+	filtered_transcripts_known=$( cat $GENE/temp_files/transcripts_read_counts_second_pass_list_tmp.txt | grep -vi tx | wc -l )
+	filtered_transcripts_novel=$( cat $GENE/temp_files/transcripts_read_counts_second_pass_list_tmp.txt | grep -i tx | wc -l )
 
 	if [ -e "$GENE/${ENSG_ID}_discoAnt_isoforms.gtf" ]
 	then 	
-		if [ $(stat -c %s "$GENE/${ENSG_ID}_discoAnt_isoforms.gtf") -eq 0 ]
+		if [ -s "$GENE/${ENSG_ID}_discoAnt_isoforms.gtf" ]
 		then
+			:
+		else
 			echo "Read count threshold second pass failed, check logs file"
 			exit 1
-		else
-			:
 		fi
 	else
 		echo "Read count threshold second pass failed, check logs file"
@@ -406,9 +406,9 @@ function read_count_function_second_pass() {
 }
 
 function gffcomp_function() {
-	redirect_output gffcompare -r $ANNA_GTF_filt -o $GENE/gffcomp_outs/gffcomp $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
+	redirect_output gffcompare -r $ANNA_GTF_filt -o $GENE/annotated_isoforms/gffcomp $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
 	
-	mv $GENE/gffcomp.* $GENE/gffcomp_outs/
+	mv $GENE/gffcomp.* $GENE/annotated_isoforms/
 
 }
 
@@ -421,7 +421,7 @@ function sqanti_function() {
 	python $SCRIPT_DIR/scripts/SQANTI3/sqanti3_qc.py \
 		$GENE/${ENSG_ID}_discoAnt_isoforms.gtf \
 		$ANNA_GTF_filt $REF_GENOME_FN_filt \
-		-d $GENE/sqanti -o $GENE --report skip
+		-d $GENE/sqanti -o $GENE/annotated_isoforms --report skip
 		#--CAGE_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
 		#--polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt
 
@@ -516,6 +516,7 @@ generate_report_function
 
 
 ########## Finished ##########
+echo "Complete"
 
 # removing temp files
 # currently commented out while de-bugging
@@ -524,10 +525,3 @@ generate_report_function
 #rm $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
 #rm $GENE/minimap2/*.sam
 #rm $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
-
-echo "
-██████  ██ ███████  ██████  ██████   █████  ███    ██ ████████      ██████  ██████  ███    ███ ██████  ██      ███████ ████████ ███████ 
-██   ██ ██ ██      ██      ██    ██ ██   ██ ████   ██    ██        ██      ██    ██ ████  ████ ██   ██ ██      ██         ██    ██      
-██   ██ ██ ███████ ██      ██    ██ ███████ ██ ██  ██    ██        ██      ██    ██ ██ ████ ██ ██████  ██      █████      ██    █████   
-██   ██ ██      ██ ██      ██    ██ ██   ██ ██  ██ ██    ██        ██      ██    ██ ██  ██  ██ ██      ██      ██         ██    ██      
-██████  ██ ███████  ██████  ██████  ██   ██ ██   ████    ██         ██████  ██████  ██      ██ ██      ███████ ███████    ██    ███████ "                                                                                                                                        
