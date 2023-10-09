@@ -19,9 +19,9 @@ read_count_minimum=5
 ##
 
 ## Downsampling to be set to TRUE or FALSE ##
-downsampling=FALSE
+downsampling=TRUE
 # below is checked only if downsampling is TRUE
-number_reads_downsample=100
+number_reads_downsample=1000
 ##
 
 ## Primer site filter to be set to TRUE or FALSE ##

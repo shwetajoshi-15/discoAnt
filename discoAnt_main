@@ -119,7 +119,7 @@ function downsampling_function() {
 			## Downsample the reads
 			## reformat.sh is from BBMap
 			reformat.sh sample=$number_reads_downsample \
-			in=$GENE/samples/reads/$sample_name}.fa \
+			in=$GENE/samples/reads/$sample_name.fa \
 			out=$GENE/samples/downsample_$number_reads_downsample/$sample_name.fa
 
 		done
