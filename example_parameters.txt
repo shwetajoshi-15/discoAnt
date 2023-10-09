@@ -1,49 +1,42 @@
 ## Gene Information
 
-# optional 
-max_intron_length=   #null to run default
-
 # required 
-GENE=SIRV5      
-ENSG_ID=SIRV5
-chr=SIRV5
+GENE=CLCN3   
+ENSG_ID=ENSG00000109572
+chr=chr4
 
 ## Paths to data
 
 # required
-FASTA="path/discoAnt/test_data/test_fasta"
-REF_GENOME_FN="path/discoAnt/test_data/sirv_refs/SIRV5_ref.fa"
-ANNA_GTF="path/discoAnt/test_data/sirv_refs/SIRV5_ref.gtf"
-
-# path to discoAnt folder
-DA_PATH="~/path/to/discoAnt"
-
+FASTA="path/to/sample/fasta_folders"
+REF_GENOME_FN="path/to/hg38.fa"
+ANNA_GTF="path/to/gencode.v44.annotation.gtf"
 
 ## Analysis parameters
 
 # required
 
+# minimum thresholds
+read_count_minimum=5
+
 # downsampling to be set to TRUE or FALSE
 downsampling=FALSE
+# below is checked only if downsampling is TRUE
+number_reads_downsample=8000
 
 # primer site filter to be set to TRUE or FALSE
-primer_site_based_filter=FALSE
-
-# optional?
-reads_per_barcode_post_downsampling=8000
+primer_site_based_filter=TRUE
 
 ## Bambu
-
 # bambu parameter (optional?)
 readFraction_for_bambu=0.001
 
-# CPM_based_filter is set to TRUE by default.
-# recommended threshold value is 1
-CPM_threshold=1
+## Primer coordinates for forward and reverse, as bed files
+forward_primers="path/to/forward.bed"
+reverse_primers="path/to/reverse.bed"
 
+# optional 
 
-## Primer coordinates
-F1_start=
-F1_end=
-R1_start=
-R1_end=
+max_intron_length=   #null to run default
+
+run_sqanti=FALSE
