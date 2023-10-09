@@ -1,42 +1,42 @@
-## Gene Information
+## Parameters File ##
 
-# required 
-GENE=CLCN3   
+## Experiment Info ##
+# GENE is used as output prefix
+GENE=CLCN3
 ENSG_ID=ENSG00000109572
+# chr is used to filter reference files to increase speed
 chr=chr4
+##
 
-## Paths to data
-
-# required
+## Paths to data ##
 FASTA="path/to/sample/fasta_folders"
 REF_GENOME_FN="path/to/hg38.fa"
 ANNA_GTF="path/to/gencode.v44.annotation.gtf"
+##
 
-## Analysis parameters
-
-# required
-
-# minimum thresholds
+## Minimum read count per isoform threshold ##
 read_count_minimum=5
+##
 
-# downsampling to be set to TRUE or FALSE
-downsampling=FALSE
+## Downsampling to be set to TRUE or FALSE ##
+downsampling=TRUE
 # below is checked only if downsampling is TRUE
-number_reads_downsample=8000
+number_reads_downsample=10000
+##
 
-# primer site filter to be set to TRUE or FALSE
+## Primer site filter to be set to TRUE or FALSE ##
 primer_site_based_filter=TRUE
-
-## Bambu
-# bambu parameter (optional?)
-readFraction_for_bambu=0.001
-
-## Primer coordinates for forward and reverse, as bed files
+# Primer coordinates for forward and reverse, as bed files
+# Only checked if primer filtering is TRUE
 forward_primers="path/to/forward.bed"
 reverse_primers="path/to/reverse.bed"
+##
 
-# optional 
+## Optional arguments ##
+# leave blank for default
 
-max_intron_length=   #null to run default
-
+max_intron_length=
 run_sqanti=FALSE
+readFraction_for_bambu=0.001
+
+##

@@ -21,7 +21,7 @@ read_count_minimum=5
 ## Downsampling to be set to TRUE or FALSE ##
 downsampling=FALSE
 # below is checked only if downsampling is TRUE
-number_reads_downsample=8000
+number_reads_downsample=100
 ##
 
 ## Primer site filter to be set to TRUE or FALSE ##
@@ -32,10 +32,11 @@ forward_primers="sirv_test_data/sirv_forward.bed"
 reverse_primers="sirv_test_data/sirv_reverse.bed"
 ##
 
-## Optional intron length max for minimap2 ##
+## Optional arguments ##
 # leave blank for default
 
 max_intron_length=
 run_sqanti=FALSE
+readFraction_for_bambu=0.001
 
 ##

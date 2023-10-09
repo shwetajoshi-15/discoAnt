@@ -18,9 +18,16 @@ echo \
 ██████  ██ ███████  ██████  ██████  ██   ██ ██   ████    ██ 
 "
 
+# add section here to check if the $GENE directory already exists, if it does, exit
+if [ -d $GENE ] 
+then
+	echo "$GENE already exists."
+	exit 1  # Exit the script with a non-zero status code (1)
+fi
 
 # make directories
 mkdir -p $GENE
+mkdir -p $GENE/samples
 mkdir -p $GENE/minimap2
 mkdir -p $GENE/bambu
 mkdir -p $GENE/metagene_salmon
@@ -33,64 +40,88 @@ mkdir -p $GENE/temp_files
 echo "Indexing and filtering reference files"
 
 # GTF
-grep ${ENSG_ID} ${ANNA_GTF} > $GENE/temp_files/filt_chr.gtf
+grep $ENSG_ID $ANNA_GTF > $GENE/temp_files/filt_chr.gtf
 ANNA_GTF_filt=$GENE/temp_files/filt_chr.gtf
 
 # FASTA
-samtools faidx ${REF_GENOME_FN} ${chr} -o $GENE/temp_files/filt_chr.fa
+samtools faidx $REF_GENOME_FN $chr -o $GENE/temp_files/filt_chr.fa
 REF_GENOME_FN_filt=$GENE/temp_files/filt_chr.fa
 
 
 # new function to check that fastq(.gz) and fasta files are in the FASTA DIR and that FASTA dir exists
 function check_for_fastq_or_fasta_files() {
-	
+
 	if [ -d "$FASTA" ] 
 	then
-        echo "Searching for FASTQ or FASTA files in $FASTA and its subdirectories..."
+        echo "Finding reads in $FASTA"
         
         # Use find to search for FASTQ or FASTA files
         if find "$FASTA" -type f \( -name "*.fastq"  -o -name "*.fastq.gz" -o -name "*.fasta" -o -name "*.fa" \) -print -quit | grep -q . 
 		then
-            echo "FASTQ or FASTA files found. Continuing..."
+            echo "FASTQ or FASTA files found."
             # Call the next function or perform the next task here
         else
-            echo "No FASTQ or FASTA files found. Exiting."
-            $exit 1 
+            echo "No FASTQ or FASTA files found within subdirectories of $FASTA. Exiting."
+            exit 1  # Exit the script with a non-zero status code (1)
         fi
 
     else
-        echo "Directory not found: $directory"
-        exit 1  # Quit the script with an error code (adjust as needed)
+        echo "Directory not found: $FASTA. Exiting."
+        exit 1  # Exit the script with a non-zero status code (1)
     fi
     
 }
 
+# new function to check that fastq(.gz) and fasta files are in the FASTA DIR and that FASTA dir exists
+function concat_files() {
+	
+	mkdir $GENE/samples/reads
+
+	# run on all subdirectories in $FASTA
+	find "$FASTA" -type d -mindepth 1 -maxdepth 1 | while read -r dir
+	do
+
+		# Use basename to extract just the directory name
+		dir_name=$(basename "$dir")
+
+		# if BBMap works on gzipped files this may not be required, minimap2 works on gzipped files
+		# Gunzip zipped files
+		for gzipped_file in "$FASTA/$dir_name"/*.gz 
+		do
+			if [ -f "$gzipped_file" ] 
+			then
+				echo "Unzipping $gzipped_file"
+				gunzip "$gzipped_file"
+			fi
+		done
+		
+		# combine all sample read files into one file
+		cat $FASTA/$dir_name/*.fa* > $GENE/samples/reads/$dir_name.fa
+
+	done
+    
+}
 
 # new downsample_function
 function downsampling_function() {
 	if [ "$downsampling" == TRUE ]
 	then
 
-		echo "Downsampling all samples"
-		mkdir -p $FASTA/downsample_$number_reads_downsample
+		echo "Downsampling reads"
+		mkdir -p $GENE/samples/downsample_$number_reads_downsample
 
-		for filename in $FASTA/*.fa*
+		for filename in $GENE/samples/reads/*.fa
 		do
 
         	base=$(basename "$filename")
         	sample_name="${base%.*}" 
-
-			## Concatenate all FASTQ files in the subdirectory into one
-			#cat $FASTA/$subdir/*.fastq > $FASTA/${subdir}_cat.fastq
-
+			echo "$sample_name downsampling"
 			## Downsample the reads
 			## reformat.sh is from BBMap
 			reformat.sh sample=$number_reads_downsample \
-			in=$FASTA/$sample_name.fa* \
-			out=$FASTA/downsample_$number_reads_downsample/$sample_name.fa
+			in=$GENE/samples/reads/$sample_name}.fa \
+			out=$GENE/samples/downsample_$number_reads_downsample/$sample_name.fa
 
-			# Clean up the combined file
-			#rm $FASTA/${subdir}_cat.fastq
 		done
 
 	fi
@@ -111,46 +142,38 @@ function mapping_genome_function() {
   then
     max_intron_length="400" # Set to the default value if max_intron_length is empty
   fi
-
-  echo "Aligning reads with minimap2"
   
   if [ "$downsampling" == TRUE ]
   then
 
-	for filename in $FASTA/downsample_$number_reads_downsample/*.fa*
-	do
-        base=$(basename "$filename")
-        sample_name="${base%.*}"
-    
-    	minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$number_reads_downsample/${sample_name}.fa* > $GENE/minimap2/${sample_name}.sam
-		samtools view -S -h -b $GENE/minimap2/${sample_name}.sam | samtools sort - > $GENE/minimap2/${sample_name}_sorted.bam
-  		samtools view -h -F 2308 $GENE/minimap2/${sample_name}_sorted.bam | samtools sort - > $GENE/minimap2/${sample_name}_pri_sorted.bam
-	
-	done
+  	path_to_reads=$GENE/samples/downsample_$number_reads_downsample
 
   elif [ "$downsampling" == FALSE ]
   then
 
-	for filename in $FASTA/*.fa*
-	do
+	path_to_reads=$GENE/samples/reads
 
-        base=$(basename "$filename")
-        sample_name="${base%.*}" 
-    
-    	minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/${sample_name}.fa* > $GENE/minimap2/${sample_name}.sam
-    	samtools view -S -h -b $GENE/minimap2/${sample_name}.sam | samtools sort - > $GENE/minimap2/${sample_name}_sorted.bam
-  		samtools view -h -F 2308 $GENE/minimap2/${sample_name}_sorted.bam | samtools sort - > $GENE/minimap2/${sample_name}_pri_sorted.bam
-	
-	done
-    
   fi
 
-  
-  samtools merge -f $GENE/minimap2/"$GENE"_pri_merged.bam $GENE/minimap2/*_pri_sorted.bam
+  echo "Aligning reads with minimap2"
+  for filename in "$path_to_reads"/*.fa
+  do
+
+    base=$(basename "$filename")
+    sample_reads="${base%.*}" 
+    
+    minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $GENE/samples/reads/${sample_reads}.fa > $GENE/minimap2/${sample_reads}.sam
+    samtools view -S -h -b $GENE/minimap2/${sample_reads}.sam | samtools sort - > $GENE/minimap2/${sample_reads}_sorted.bam
+  	samtools view -h -F 2308 $GENE/minimap2/${sample_reads}_sorted.bam | samtools sort - > $GENE/minimap2/${sample_reads}_pri_sorted.bam
+	
+  done
+
+  samtools merge -f $GENE/minimap2/$GENE_pri_merged.bam $GENE/minimap2/*_pri_sorted.bam
+
   samtools merge -f $GENE/minimap2/$GENE_merged.bam $GENE/minimap2/*_sorted.bam
 
-  samtools index $GENE/minimap2/"$GENE"_pri_merged.bam
-  samtools index $GENE/minimap2/"$GENE"_merged.bam
+  samtools index $GENE/minimap2/$GENE_pri_merged.bam
+  samtools index $GENE/minimap2/$GENE_merged.bam
   
 }
 
@@ -218,36 +241,19 @@ function create_metatranscriptome() {
 }
 
 function remapping_function() {
-	if [ "$downsampling" == FALSE ]
-	then
 
-		echo "Quantifying with salmon"
+	echo "Quantifying with salmon"
 
-		for filename in $FASTA/*.fa*
-		do
+	for filename in $path_to_reads/*.fa
+	do
 
-			base=$(basename $filename .fa)
-			echo "On sample $base"
+		base=$(basename $filename .fa)
+		echo "On sample $base"
 
-			salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $FASTA/${base}.fa -o $GENE/metagene_salmon/${base}
+		salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $path_to_reads/${base}.fa -o $GENE/metagene_salmon/${base}
 
-		done
+	done
 
-	elif [ "$downsampling" == TRUE ]
-	then
-
-		echo "Quantifying with salmon"
-
-		for filename in $FASTA/*.fa*
-		do
-
-			base=$(basename $filename .fa)
-			echo "On sample $base"
-
-			salmon quant --quiet -i $GENE/filtered_transcripts -l A -r $FASTA/$reads_per_barcode_post_downsampling/${base}.fa -o $GENE/metagene_salmon/${base}
-		
-		done
-	fi
 }
 
 function combine_quants_function() {
@@ -297,7 +303,7 @@ function sqanti_function() {
 			-d $GENE/sqanti -o $GENE --report skip
 			#--CAGE_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
 			#--polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt
-
+	fi
 }
 
 function generate_report_function() {
@@ -325,7 +331,8 @@ EOT
 ########## 0. Counting the number of reads and downsampling ##########
 
 # check filetypes
-#check_for_fastq_or_fasta_files
+check_for_fastq_or_fasta_files
+concat_files
 
 # Downsampling
 downsampling_function
