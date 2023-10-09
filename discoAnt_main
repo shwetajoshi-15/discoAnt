@@ -240,6 +240,14 @@ function primer_site_function() {
 
 		cat $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $GENE/filtered_transcripts/transcripts_primer_overlap.txt
 		
+		if [ -e "$GENE/filtered_transcripts/transcripts_primer_overlap.txt" ]
+  		then 
+			:
+ 		else
+			echo "Failed to filter based on primers, check logs file"
+			exit 1
+  		fi
+
 		# Count the number of isoforms kept after primer filtering \
 		count_file1=$(awk '$3 == "transcript" {count++} END {print count}' "$GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf")
 		count_file2=$(awk '$3 == "transcript" {count++} END {print count}' "$GENE/bambu/extended_annotations.gtf")
@@ -250,7 +258,7 @@ function primer_site_function() {
 		# Check if count_file1 is greater than half_count_file2
 		if [ "$count_file1" -lt "$primer_threshold" ] 
 		then
-			echo "Warning: more than 80% of the isoforms identified with Bambu were removed after primer site filtering"
+			echo "WARNING: more than 80% of the isoforms identified with Bambu were removed after primer site filtering"
 		fi
 
 	fi
@@ -274,14 +282,37 @@ function read_count_function_first_pass() {
 	sed 's/tx./tx/g' $GENE/bambu/extended_annotations_read_count_more_than_1.gtf > $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
 	cat $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | awk '{ print $1"\t"$3}' > $GENE/filtered_transcripts/filtered_transcripts.txt
 
+	if [ -e "$GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf" ]
+  	then 
+		:
+ 	else
+		echo "Read count threshold first pass failed, check logs file"
+		exit 1
+  	fi
 }
 
 function create_metatranscriptome() {
 	echo "Creating an updated transcriptome with novel isoforms..."
 
 	redirect_output gffread -w $GENE/filtered_transcripts/filtered_transcripts.fa -g $REF_GENOME_FN_filt $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
-	redirect_output salmon index -t $GENE/filtered_transcripts/filtered_transcripts.fa -i $GENE/filtered_transcripts -k 31
+	
+	if [ -e "$GENE/filtered_transcripts/filtered_transcripts.fa" ]
+  	then 
+		:
+ 	else
+		echo "Failed to create updated transcriptome with gffread, check logs file"
+		exit 1
+  	fi
 
+	redirect_output salmon index -t $GENE/filtered_transcripts/filtered_transcripts.fa -i $GENE/filtered_transcripts -k 31
+	
+	if [ -e "$GENE/filtered_transcripts/versionInfo.json" ]
+  	then 
+		:
+ 	else
+		echo "Failed to index with salmon, check logs file"
+		exit 1
+  	fi
 }
 
 function remapping_function() {
@@ -298,6 +329,19 @@ function remapping_function() {
 	}
 
 	redirect_output running_salmon
+	if [ -d "$$GENE/metagene_salmon" ]
+  	then 
+		if [ "$(ls -A $DIR)" ] 
+		then
+     		: 
+		else
+    		echo "Failed to quantify with salmon, check logs file"
+			exit 1
+		fi
+ 	else
+		:
+  	fi
+
 }
 
 function combine_quants_function() {
@@ -327,11 +371,20 @@ function read_count_function_second_pass() {
 	filtered_transcripts_known=$( cat $GENE/filtered_transcripts/transcripts_read_counts_second_pass_list_tmp.txt | grep -vi tx | wc -l )
 	filtered_transcripts_novel=$( cat $GENE/filtered_transcripts/transcripts_read_counts_second_pass_list_tmp.txt | grep -i tx | wc -l )
 
+	if [ -e "$GENE/${ENSG_ID}_discoAnt_isoforms.gtf" ]
+  	then 
+		:
+ 	else
+		echo "Read count threshold second pass failed, check logs file"
+		exit 1
+  	fi
 }
 
 function gffcomp_function() {
 	redirect_output gffcompare -r $ANNA_GTF_filt -o $GENE/gffcomp_outs/gffcomp $GENE/${ENSG_ID}_discoAnt_isoforms.gtf
+	
 	mv $GENE/gffcomp.* $GENE/gffcomp_outs/
+
 }
 
 function sqanti_function() {
