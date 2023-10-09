@@ -29,9 +29,7 @@ mkdir -p $GENE/discarded_transcripts
 mkdir -p $GENE/gffcomp_outs
 mkdir -p $GENE/temp_files
 
-# filter reference files 
-# index genome fasta
-
+# filter reference files and index reference genome
 echo "Indexing and filtering reference files"
 
 # GTF
@@ -43,20 +41,23 @@ samtools faidx ${REF_GENOME_FN} ${chr} -o $GENE/temp_files/filt_chr.fa
 REF_GENOME_FN_filt=$GENE/temp_files/filt_chr.fa
 
 
-####have a new function to check that fastq(.gz) and fasta files are in the FASTA DIR and that FASTA dir exists
+# new function to check that fastq(.gz) and fasta files are in the FASTA DIR and that FASTA dir exists
 function check_for_fastq_or_fasta_files() {
 	
-	if [ -d "$FASTA" ]; then
+	if [ -d "$FASTA" ] 
+	then
         echo "Searching for FASTQ or FASTA files in $FASTA and its subdirectories..."
         
         # Use find to search for FASTQ or FASTA files
-        if find "$FASTA" -type f \( -name "*.fastq"  -o -name "*.fastq.gz" -o -name "*.fasta" -o -name "*.fa" \) -print -quit | grep -q . ; then
+        if find "$FASTA" -type f \( -name "*.fastq"  -o -name "*.fastq.gz" -o -name "*.fasta" -o -name "*.fa" \) -print -quit | grep -q . 
+		then
             echo "FASTQ or FASTA files found. Continuing..."
             # Call the next function or perform the next task here
         else
             echo "No FASTQ or FASTA files found. Exiting."
             $exit 1 
         fi
+
     else
         echo "Directory not found: $directory"
         exit 1  # Quit the script with an error code (adjust as needed)
@@ -65,135 +66,91 @@ function check_for_fastq_or_fasta_files() {
 }
 
 
-
 # new downsample_function
 function downsampling_function() {
-	if [ "$downsampling" == TRUE ]; then
-		echo "Downsampling all barcodes"
-		
-		for subdir in "$FASTA"/*/
-		do
-			subdir=$(basename "$subdir") # Extract the subdirectory name
-			mkdir -p $FASTA/$reads_per_barcode_post_downsampling/
-			
-			## Concatenate all FASTQ files in the subdirectory into one
-			cat $FASTA/$subdir/*.fastq > $FASTA/${subdir}_cat.fastq
+	if [ "$downsampling" == TRUE ]
+	then
 
-			## Downsample the combined FASTQ file
-			reformat.sh sample=$reads_per_barcode_post_downsampling \
-			in=$FASTA/${subdir}_cat.fastq \
-			out=$FASTA/$reads_per_barcode_post_downsampling/$subdir.fastq
+		echo "Downsampling all samples"
+		mkdir -p $FASTA/downsample_$number_reads_downsample
+
+		for filename in $FASTA/*.fa*
+		do
+
+        	base=$(basename "$filename")
+        	sample_name="${base%.*}" 
+
+			## Concatenate all FASTQ files in the subdirectory into one
+			#cat $FASTA/$subdir/*.fastq > $FASTA/${subdir}_cat.fastq
+
+			## Downsample the reads
+			## reformat.sh is from BBMap
+			reformat.sh sample=$number_reads_downsample \
+			in=$FASTA/$sample_name.fa* \
+			out=$FASTA/downsample_$number_reads_downsample/$sample_name.fa
 
 			# Clean up the combined file
-			rm $FASTA/${subdir}_cat.fastq
-
-			for filename in $FASTA/$subdir
-      do
-      
-				base=$(basename "$filename" .fastq)
-				echo "On sample $base"
-				
-				# If you still need to do something with individual files, you can do it here.
-				# For example, you may want to move the original files to a different directory.
-			done
-		done
-	fi
-}
-
-
-# unsure if this function works
-function read_per_barcode_count_function() {
-	if [ "$downsampling" == TRUE ];
-	then
-
-		#echo "Creating a temporary file with number of pass reads in each barcode post-downsampling"
-
-	for filename in $FASTA/*.fa
-	do
-		
-		base=$(basename $filename .fa)
-		echo "On sample $base"
-
-		grep -c "^>" $FASTA/$reads_per_barcode_post_downsampling/${base}.fa >> $GENE/no_of_reads_barcodewise_postdwnsmp_tmp.txt
-
-	done
-
-	elif [ "$downsampling" == FALSE ];
-	then
-
-		#echo "Creating a temporary file with number of pass reads in each barcode"
-
-		for filename in $FASTA/*.fa
-		do
-		base=$(basename $filename .fa)
-		echo "On sample $base"
-
-		grep -c "^>" $FASTA/${base}.fa >> $GENE/temp_files/no_of_reads_barcodewise_tmp.txt
-
+			#rm $FASTA/${subdir}_cat.fastq
 		done
 
 	fi
 
 	# report metrics
-	num_of_barcodes=$( ls -lh $FASTA/*.f* | wc -l )
+	#num_of_barcodes=$( ls -lh $FASTA/*.f* | wc -l )
 	#total_reads_pass=$(awk '{ sum += $1 } END { print sum }' $GENE/no_of_reads_pass_barcodewise_tmp.txt)
 	#total_reads_pass_post_dwnsmp=$(awk '{ sum += $1 } END { print sum }' $GENE/no_of_reads_barcodewise_postdwnsmp_tmp.txt)
-	total_reads=$(awk '{ sum += $1 } END { print sum }' $GENE/temp_files/no_of_reads_barcodewise_tmp.txt)
-	read_supp_for_transcript=$(echo $total_reads \* $readFraction_for_bambu  | bc)
+	#total_reads=$(awk '{ sum += $1 } END { print sum }' $GENE/temp_files/no_of_reads_barcodewise_tmp.txt)
+	#read_supp_for_transcript=$(echo $total_reads \* $readFraction_for_bambu  | bc)
 
 }
 
+
 function mapping_genome_function() {
-	# define max intron length for minimap2
-  if [ -z "$max_intron_length" ]; then
+  # define max intron length for minimap2
+  if [ -z "$max_intron_length" ] 
+  then
     max_intron_length="400" # Set to the default value if max_intron_length is empty
   fi
+
+  echo "Aligning reads with minimap2"
   
-  if [ "$downsampling" == TRUE ];
-	then
+  if [ "$downsampling" == TRUE ]
+  then
 
-		echo "Aligning pass reads to $chr"
-
-		for filename in $FASTA/$reads_per_barcode_post_downsampling/*.fa*
-		do
-
-      base=$(basename $filename *.fa*)
-      echo "On sample $base"
-
-      minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$reads_per_barcode_post_downsampling/*.fa* > $GENE/minimap2/${base}.sam
-      samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
-      samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
-
-		done
-
-	# should be else if, not new if function
-	elif [ "$downsampling" == FALSE ];
-	then
-		
-		echo "Aligning pass reads to $chr"
-
-
-		for filename in $FASTA/*.fa*
-		do
+	for filename in $FASTA/downsample_$number_reads_downsample/*.fa*
+	do
+        base=$(basename "$filename")
+        sample_name="${base%.*}"
     
-      base=$(basename $filename *.fa*)
-      echo "On sample $base"
+    	minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/$number_reads_downsample/${sample_name}.fa* > $GENE/minimap2/${sample_name}.sam
+		samtools view -S -h -b $GENE/minimap2/${sample_name}.sam | samtools sort - > $GENE/minimap2/${sample_name}_sorted.bam
+  		samtools view -h -F 2308 $GENE/minimap2/${sample_name}_sorted.bam | samtools sort - > $GENE/minimap2/${sample_name}_pri_sorted.bam
+	
+	done
 
-      minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/${base}.fa* > $GENE/minimap2/${base}.sam
-      samtools view -S -h -b $GENE/minimap2/${base}.sam | samtools sort - > $GENE/minimap2/${base}_sorted.bam
-      samtools view -h -F 2308 $GENE/minimap2/${base}_sorted.bam | samtools sort - > $GENE/minimap2/${base}_pri_sorted.bam
+  elif [ "$downsampling" == FALSE ]
+  then
 
-		done
+	for filename in $FASTA/*.fa*
+	do
+
+        base=$(basename "$filename")
+        sample_name="${base%.*}" 
     
-	fi
+    	minimap2 -ax splice -G"${max_intron_length}"k --splice-flank=yes --eqx $REF_GENOME_FN_filt $FASTA/${sample_name}.fa* > $GENE/minimap2/${sample_name}.sam
+    	samtools view -S -h -b $GENE/minimap2/${sample_name}.sam | samtools sort - > $GENE/minimap2/${sample_name}_sorted.bam
+  		samtools view -h -F 2308 $GENE/minimap2/${sample_name}_sorted.bam | samtools sort - > $GENE/minimap2/${sample_name}_pri_sorted.bam
 	
-	samtools merge -f $GENE/minimap2/$GENE_pri_merged.bam $GENE/minimap2/*_pri_sorted.bam
-	samtools merge -f $GENE/minimap2/$GENE_merged.bam $GENE/minimap2/*_sorted.bam
+	done
+    
+  fi
 
-	samtools index $GENE/minimap2/$GENE_pri_merged.bam
-	samtools index $GENE/minimap2/$GENE_merged.bam
-	
-	rm $GENE/minimap2/*.sam
+  
+  samtools merge -f $GENE/minimap2/"$GENE"_pri_merged.bam $GENE/minimap2/*_pri_sorted.bam
+  samtools merge -f $GENE/minimap2/$GENE_merged.bam $GENE/minimap2/*_sorted.bam
+
+  samtools index $GENE/minimap2/"$GENE"_pri_merged.bam
+  samtools index $GENE/minimap2/"$GENE"_merged.bam
   
 }
 
@@ -213,7 +170,7 @@ function run_bambu_function() {
 }
 
 function primer_site_function() {
-	if [ "$primer_site_based_filter" == TRUE ];
+	if [ "$primer_site_based_filter" == TRUE ]
 	then
 		
 		echo "Primer site filtering on"
@@ -226,18 +183,15 @@ function primer_site_function() {
 
 		cat $GENE/filtered_transcripts/extended_annotations_with_primer_overlap.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $GENE/filtered_transcripts/transcripts_primer_overlap.txt
 
-	elif [ "$primer_site_based_filter" == FALSE ];
-	then
-		echo "Primer site filtering off"
 	fi
 }
 
 function read_count_function_first_pass() {
 
-	if [ "$primer_site_based_filter" == TRUE ];
+	if [ "$primer_site_based_filter" == TRUE ]
 	then
 		cat $GENE/bambu/bambu_read_counts.txt | grep -wf $GENE/filtered_transcripts/transcripts_primer_overlap.txt | awk '{ if ($2 > 1) print }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt
-	elif [ "$primer_site_based_filter" == FALSE ];
+	elif [ "$primer_site_based_filter" == FALSE ]
 	then
 		cat $GENE/bambu/bambu_read_counts.txt |  awk '{ if ($2 > 1) print }' > $GENE/filtered_transcripts/transcripts_read_counts_more_than_1.txt
 	fi
@@ -264,7 +218,7 @@ function create_metatranscriptome() {
 }
 
 function remapping_function() {
-	if [ "$downsampling" == FALSE ];
+	if [ "$downsampling" == FALSE ]
 	then
 
 		echo "Quantifying with salmon"
@@ -279,7 +233,7 @@ function remapping_function() {
 
 		done
 
-	elif [ "$downsampling" == TRUE ];
+	elif [ "$downsampling" == TRUE ]
 	then
 
 		echo "Quantifying with salmon"
@@ -327,53 +281,54 @@ function gffcomp_function() {
 }
 
 function sqanti_function() {
-  # source python paths for cDNA Cupcake to run with SQANTI
-  export PYTHONPATH="$SCRIPT_DIR/scripts/cDNA_Cupcake/sequence/:$PYTHONPATH"
-  export PYTHONPATH="$SCRIPT_DIR/scripts/cDNA_Cupcake/:$PYTHONPATH"
+	if [ "$run_sqanti" == TRUE ]
+  	then
+
+		echo "Annotating isoforms with SQANTI"
+
+ 		# source python paths for cDNA Cupcake to run with SQANTI
+  		export PYTHONPATH="$SCRIPT_DIR/scripts/cDNA_Cupcake/sequence/:$PYTHONPATH"
+  		export PYTHONPATH="$SCRIPT_DIR/scripts/cDNA_Cupcake/:$PYTHONPATH"
   
-	echo "Annotating isoforms with SQANTI"
-	python $SCRIPT_DIR/scripts/SQANTI3/sqanti3_qc.py \
-		$GENE/${ENSG_ID}_discoAnt_isoforms.gtf \
-		$ANNA_GTF_filt $REF_GENOME_FN_filt \
-		-d $GENE/sqanti -o $GENE --report skip
-		#--CAGE_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
-		#--polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt
+		
+		python $SCRIPT_DIR/scripts/SQANTI3/sqanti3_qc.py \
+			$GENE/${ENSG_ID}_discoAnt_isoforms.gtf \
+			$ANNA_GTF_filt $REF_GENOME_FN_filt \
+			-d $GENE/sqanti -o $GENE --report skip
+			#--CAGE_peak $REF_HG38/refTSS_v3.3_human_coordinate.hg38.bed \
+			#--polyA_peak $REF_HG38/atlas.clusters.2.0.GRCh38.96.bed --polyA_motif_list $REF_HG38/human.polyA.list.txt
+
 }
 
 function generate_report_function() {
 	cat << EOT >> $GENE/${ENSG_ID}_discoAnt_report.txt
 	`date`
 
+	These three won't work currently:
 	Number of input samples/barcodes: $num_of_barcodes
 	Number of reads across barcodes: $total_reads_pass
+	Number of reads across barcodes post-downsampling: 
 
 	Filters applied:
-		Primer site based filter: $primer_site_based_filter
+		Primer site filter: $primer_site_based_filter
 		Downsampling: $downsampling
+		Downsampled to number of reads: $number_reads_downsample
 		Read count minimum: $read_count_minimum
 
-	Number of reads across barcodes post-downsampling: $total_reads_pass_post_dwnsmp
-
-	Read support for isoforms: to_fix?
-
-	Known isoforms post filtering: $filtered_transcripts_known
-	Novel isoforms post filtering: $filtered_transcripts_novel
+	Known isoforms identified: $filtered_transcripts_known
+	Novel isoforms identified: $filtered_transcripts_novel
 
 EOT
 }
 
 
-
 ########## 0. Counting the number of reads and downsampling ##########
 
 # check filetypes
-check_for_fastq_or_fasta_files
+#check_for_fastq_or_fasta_files
 
 # Downsampling
 downsampling_function
-
-#### Count number of reads in each barcode 
-#read_per_barcode_count_function
 
 
 ########## 1. Aligning sample fasta files to reference genome ##########
@@ -406,6 +361,7 @@ create_metatranscriptome
 # remap to salmon metatranscriptome
 remapping_function
 
+
 ########## 2.d. Generating count matrix   ##########
 
 # Rscript to combine quant.sf files and filter by read min counts
@@ -421,8 +377,7 @@ read_count_function_second_pass
 gffcomp_function
 
 # run with SQANTI
-# remove comment if working SQANTI env
-#sqanti_function
+sqanti_function
 
 
 ########## 4. Report ##########
@@ -438,6 +393,7 @@ generate_report_function
 # more of the extra files should be put into tmp and deleted
 #rm -rf $GENE/temp_files
 #rm $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
+#rm $GENE/minimap2/*.sam
 
 echo "
 ██████  ██ ███████  ██████  ██████   █████  ███    ██ ████████      ██████  ██████  ███    ███ ██████  ██      ███████ ████████ ███████ 

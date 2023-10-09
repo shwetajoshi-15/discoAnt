@@ -1,39 +1,41 @@
-## Gene Information
+## Parameters File ##
 
-# required 
-GENE=primers_on_SIRV5
+## Experiment Info ##
+# GENE is used as output prefix
+GENE=SIRV5_test
 ENSG_ID=SIRV5
+# chr is used to filter reference files to increase speed
 chr=SIRV5
+##
 
-
-## Paths to data
-
-# required
+## Paths to data ##
 FASTA="sirv_test_data/test_fasta"
 REF_GENOME_FN="sirv_test_data/sirv_refs/SIRV5_ref.fa"
 ANNA_GTF="sirv_test_data/sirv_refs/SIRV5_ref.gtf"
+##
 
-## Analysis parameters
-
-# required
-
-# downsampling to be set to TRUE or FALSE
-downsampling=FALSE
-
-# primer site filter to be set to TRUE or FALSE
-primer_site_based_filter=TRUE
-
-# minimum thresholds
-reads_per_barcode_post_downsampling=8000
+## Minimum read count per isoform threshold ##
 read_count_minimum=5
+##
 
-## Bambu
-# bambu parameter (optional?)
-readFraction_for_bambu=0.001
+## Downsampling to be set to TRUE or FALSE ##
+downsampling=FALSE
+# below is checked only if downsampling is TRUE
+number_reads_downsample=8000
+##
 
-## Primer coordinates for forward and reverse, as bed files
+## Primer site filter to be set to TRUE or FALSE ##
+primer_site_based_filter=TRUE
+# Primer coordinates for forward and reverse, as bed files
+# Only checked if primer filtering is TRUE
 forward_primers="sirv_test_data/sirv_forward.bed"
 reverse_primers="sirv_test_data/sirv_reverse.bed"
+##
 
-# optional 
-max_intron_length=   #null to run default
+## Optional intron length max for minimap2 ##
+# leave blank for default
+
+max_intron_length=
+run_sqanti=FALSE
+
+##

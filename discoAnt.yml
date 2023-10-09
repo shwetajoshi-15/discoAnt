@@ -6,7 +6,7 @@ channels:
   - r
   - defaults
 dependencies:
-#  - bcbio-gff
+  - bcbio-gff
   - bedtools
   - samtools
   - salmon
