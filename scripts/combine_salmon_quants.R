@@ -12,6 +12,8 @@ option_list = list(
               help="ENS_ID variable"),
   make_option(c("-m", "--read_min"), type="character", default=NULL,
               help="Read count threshold"),
+  make_option(c("-s", "--sample_min"), type="character", default=NULL,
+              help="Read count threshold"),
   make_option(c("-o", "--output_path"), type="character", default=NULL,
               help="output path")
 )
@@ -23,6 +25,7 @@ suppressWarnings({
 
   gene_id <- (opt$ens_var)
   read_count_min <- as.numeric(opt$read_min)
+  samples_min <- as.numeric(opt$sample_min)
   outdir <- (opt$output_path)
 
   # get sample ids from within directory
@@ -64,25 +67,17 @@ suppressWarnings({
   #rownames(combined_counts) <- NULL
 
   combined_counts <- combined_counts %>% 
-      mutate(total = rowSums(select_if(., is.numeric), na.rm = TRUE)) %>%
-      dplyr::filter(total > read_count_min)
+    filter(rowSums(select_if(., is.numeric) >= read_count_min, na.rm = TRUE) >= samples_min) %>% 
+    mutate(total = rowSums(select_if(., is.numeric), na.rm = TRUE)) 
   
-  sum(combined_counts$total)
+  total_reads_remaining <- as.integer(sum(combined_counts$total))
   
   combined_counts$total <- NULL
-
-  combined_counts$TXNAME <- gsub('BambuTx', 'tx', combined_counts$TXNAME)
-
-  combined_counts <- combined_counts %>% 
-    mutate(total = rowSums(select_if(., is.numeric), na.rm = TRUE)) %>%
-    dplyr::filter(total > read_count_min) %>%
-    select(-total)
   
-  
-  # export file
+  # export files
   write.csv(combined_counts, paste0(outdir, "/", outdir, "_counts.csv"), quote = FALSE, row.names = FALSE)
 
-  
+  write.table(total_reads_remaining, paste0(outdir, "/", "temp_files/remaining_read_sum.txt"), quote = FALSE, row.names = FALSE, col.names = FALSE)
   
   
   
