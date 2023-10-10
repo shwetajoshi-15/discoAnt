@@ -4,7 +4,6 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 
-
 # source parameters file
 source ${1}
 
@@ -64,7 +63,7 @@ function check_for_fastq_or_fasta_files() {
 	then
         
         # Use find to search for FASTQ or FASTA files
-        if find "$FASTA" -type f \( -name "*.fastq"  -o -name "*.fastq.gz" -o -name "*.fasta" -o -name "*.fa" \) -print -quit | grep -q . 
+        if find "$FASTA" -maxdepth 1 -type f \( -name "*.fastq"  -o -name "*.fastq.gz" -o -name "*.fasta" -o -name "*.fa" \) -print -quit | grep -q . 
 		then
             :
 			# Call the next function or perform the next task here
@@ -97,7 +96,7 @@ function concat_files() {
 		do
 			if [ -f "$gzipped_file" ] 
 			then
-				echo "Unzipping $gzipped_file..."
+				#echo "Unzipping $gzipped_file..."
 				gunzip "$gzipped_file"
 			fi
 		done
@@ -514,14 +513,11 @@ gffcomp_function
 echo "Generating report..."
 generate_report_function
 
+# removing temp files
+# currently commented out while de-bugging
+#rm -rf $GENE/temp_files
 
 ########## Finished ##########
 echo "Complete"
 
-# removing temp files
-# currently commented out while de-bugging
-# more of the extra files should be put into tmp and deleted
-#rm -rf $GENE/temp_files
-#rm $GENE/${ENSG_ID}_discoAnt_isoforms_pass1.gtf
-#rm $GENE/minimap2/*.sam
-#rm $GENE/filtered_transcripts/transcripts_read_counts_more_than_1_list_tmp.txt
+

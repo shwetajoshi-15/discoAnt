@@ -14,10 +14,10 @@ dependencies:
   - gffcompare
   - minimap2
   - python>=3.7.6
-  - r-base # needs to be 4.3
+  - r-base=4.3.1
   - r-biocmanager
   - r-optparse
-  - bioconductor-bambu # needs to be 3.2.4
+  - bioconductor-bambu
   - numpy
   - openssl
   - pybedtools
@@ -27,5 +27,5 @@ dependencies:
   - scikit-learn
   - r-ggplot2
   - r-ggplotify
-  - biopython=1.79
+  - biopython
   - bx-python
