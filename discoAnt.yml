@@ -1,4 +1,4 @@
-name: discoAnt
+name: discoAnt_updated
 channels:
   - conda-forge
   - bioconda
@@ -14,21 +14,18 @@ dependencies:
   - gffcompare
   - minimap2
   - python>=3.7.6
-  - r>=4.0.0
+  - r-base=4.3.1
   - r-biocmanager
-  - r-dplyr
-  - r-stringi
   - r-optparse
   - bioconductor-bambu
-# below are all required for SQANTI only
-#  - numpy
-#  - openssl
-#  - pybedtools
-#  - pysam
-#  - scipy
-#  - cython
-#  - scikit-learn
-#  - r-ggplot2
-#  - r-ggplotify
-#  - biopython=1.79
-#  - bx-python
+  - numpy
+  - openssl
+  - pybedtools
+  - pysam
+  - scipy
+  - cython
+  - scikit-learn
+  - r-ggplot2
+  - r-ggplotify
+  - biopython
+  - bx-python
