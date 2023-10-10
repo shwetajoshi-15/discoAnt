@@ -65,13 +65,25 @@ suppressWarnings({
 
   combined_counts <- combined_counts %>% 
       mutate(total = rowSums(select_if(., is.numeric), na.rm = TRUE)) %>%
-      dplyr::filter(total > read_count_min) %>%
-      select(-total)
+      dplyr::filter(total > read_count_min)
+  
+  sum(combined_counts$total)
+  
+  combined_counts$total <- NULL
 
-  # older Bambu versions name novel isoforms with "BambuTx' whereas new versions name them 'tx'
   combined_counts$TXNAME <- gsub('BambuTx', 'tx', combined_counts$TXNAME)
 
+  combined_counts <- combined_counts %>% 
+    mutate(total = rowSums(select_if(., is.numeric), na.rm = TRUE)) %>%
+    dplyr::filter(total > read_count_min) %>%
+    select(-total)
+  
+  
   # export file
-  write.csv(combined_counts, paste0(outdir, "/", gene_id, "_discoAnt_counts.csv"), quote = FALSE, row.names = FALSE)
+  write.csv(combined_counts, paste0(outdir, "/", outdir, "_counts.csv"), quote = FALSE, row.names = FALSE)
 
+  
+  
+  
+  
 })
