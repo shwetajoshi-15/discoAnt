@@ -229,6 +229,11 @@ function run_bambu_function() {
 }
 
 function read_count_function_first_pass() {
+	if [ -z "$read_count_minimum" ]
+	then
+    	read_count_minimum="5" # Set to the default value if empty
+  	fi
+	
 	# same read count > 1 threshold  
 	cat "$OUTPUT_NAME/bambu/counts_transcript.txt" | awk -v min_count="$read_count_minimum" '{ if ($3 > min_count ) print $1 }' | tail -n +2 > "$OUTPUT_NAME/temp_files/transcripts_combined_counts_1_list.txt"
 

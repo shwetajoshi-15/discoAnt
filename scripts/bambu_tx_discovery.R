@@ -44,9 +44,5 @@ suppressWarnings({
   
   writeBambuOutput(se, opt$output_dir)
   
-  # only outputs one row?
-  metadata_bambu <- data.frame(mcols(se))
-
-  write.csv(metadata_bambu, file.path(opt$output_dir, "bambu_metadata.csv"))
   
 })
