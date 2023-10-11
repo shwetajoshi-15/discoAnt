@@ -340,7 +340,7 @@ function remapping_function() {
 		# -N default is 5, this means keep up to 5 sec alignments
 
 		map_transcriptome_minimap2() {
-    		minimap2 -ax map-ont -p 0.8 -N 0 $OUTPUT_NAME/updated_transcriptome/updated_transcriptome.fa $path_to_reads/${sample_reads}.fa | samtools view -bh > $OUTPUT_NAME/mapped_data/${sample_reads}_transcriptome.bam
+    		minimap2 -ax map-ont -p 0.9 -N 3 $OUTPUT_NAME/updated_transcriptome/updated_transcriptome.fa $path_to_reads/${sample_reads}.fa | samtools view -bh > $OUTPUT_NAME/mapped_data/${sample_reads}_transcriptome.bam
 		}
 
 		redirect_output map_transcriptome_minimap2
