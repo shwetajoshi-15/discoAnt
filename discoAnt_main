@@ -301,8 +301,6 @@ function primer_site_function() {
 	fi
 }
 
-
-
 function create_metatranscriptome() {
 	echo "Creating an updated transcriptome with novel isoforms..."
 
