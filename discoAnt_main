@@ -178,7 +178,7 @@ function mapping_genome_function() {
     sample_reads="${base%.*}" 
     
 	map_reads_minimap2() {
-    	minimap2 -ax splice -G"${max_intron_length}"k --splice-flank="$splice_flank" --eqx $REF_GENOME_FN_filt $OUTPUT_NAME/samples/reads/${sample_reads}.fa | samtools view -bh > $OUTPUT_NAME/mapped_data/${sample_reads}.bam
+    	minimap2 -ax splice -G"${max_intron_length}"k --splice-flank="$splice_flank" --eqx $REF_GENOME_FN_filt $path_to_reads/${sample_reads}.fa | samtools view -bh > $OUTPUT_NAME/mapped_data/${sample_reads}.bam
 	}
 
 	redirect_output map_reads_minimap2
@@ -228,72 +228,21 @@ function run_bambu_function() {
 
 }
 
-function primer_site_function() {
-	if [ "$primer_site_based_filter" == TRUE ]
-	then
-		
-		echo "Filtering based on primer BED files..."
-		# used to be a 5bp window created around primers, do we need this?
-		# write out isoforms which don't match any primers
-		#bedtools subtract -A -a $OUTPUT_NAME/bambu/extended_annotations.gtf -b $forward_primers | bedtools subtract -A -a - -b $reverse_primers > $OUTPUT_NAME/filtered_transcripts/extended_annotations_no_primer_overlap.gtf
-		
-		# write out isoforms which do match primers
-		bedtools intersect -wa -u -a $OUTPUT_NAME/bambu/extended_annotations.gtf -b $forward_primers | bedtools intersect -wa -a - -b $reverse_primers > $OUTPUT_NAME/temp_files/extended_annotations_with_primer_overlap.gtf
-
-		cat $OUTPUT_NAME/temp_files/extended_annotations_with_primer_overlap.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $OUTPUT_NAME/temp_files/transcripts_primer_overlap.txt
-		
-		if [ -e "$OUTPUT_NAME/temp_files/transcripts_primer_overlap.txt" ]
-		then 	
-			if [ -s "$OUTPUT_NAME/temp_files/transcripts_primer_overlap.txt" ]
-			then
-				:
-			else
-				echo "Failed to filter based on primers, check logs file"
-				exit 1
-			fi
-		else
-			echo "Failed to filter based on primers, check logs file"
-			exit 1
-		fi
-
-		# Count the number of isoforms kept after primer filtering \
-		count_file1=$(awk '$3 == "transcript" {count++} END {print count}' "$OUTPUT_NAME/temp_files/extended_annotations_with_primer_overlap.gtf")
-		count_file2=$(awk '$3 == "transcript" {count++} END {print count}' "$OUTPUT_NAME/bambu/extended_annotations.gtf")
-
-		# Calculate 50% of the lines in file2
-		primer_threshold=$(printf "%.0f" "$(echo "$count_file2 * 0.5" | bc)")
-
-		# Check if count_file1 is greater than half_count_file2
-		if [ "$count_file1" -lt "$primer_threshold" ] 
-		then
-			echo "WARNING: more than 50% of the isoforms identified with Bambu were removed after primer site filtering"
-		fi
-
-	fi
-}
-
 function read_count_function_first_pass() {
+	# same read count > 1 threshold  
+	cat $OUTPUT_NAME/bambu/counts_transcript.txt |  awk '{ if ($3 > 1) print $1 }' | tail -n +2 > $OUTPUT_NAME/temp_files/transcripts_combined_counts_1_list.txt
+	
+	# subset bambu GTF for the transcripts that passed threshold
+	cat $OUTPUT_NAME/bambu/extended_annotations.gtf | grep -wf $OUTPUT_NAME/temp_files/transcripts_combined_counts_1_list.txt > $OUTPUT_NAME/bambu/extended_annotations_count_1.gtf
+	
+	# replace some Bambu naming conventions
+	cat $OUTPUT_NAME/bambu/extended_annotations_count_1.gtf | sed 's/tx./tx/g' | sed 's/BambuTx/tx/g' > $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf
+	cat $OUTPUT_NAME/temp_files/transcripts_combined_counts_1_list.txt | sed 's/tx./tx/g' | sed 's/BambuTx/tx/g' | awk '{ print $1"\t"$3}' > $OUTPUT_NAME/temp_files/updated_transcriptome_count_1.txt
 
-	if [ "$primer_site_based_filter" == TRUE ]
-	then
-		cat $OUTPUT_NAME/bambu/bambu_read_counts.txt | grep -wf $OUTPUT_NAME/temp_files/transcripts_primer_overlap.txt | awk '{ if ($2 > 1) print }' > $OUTPUT_NAME/temp_files/transcripts_read_counts_more_than_1.txt
-	elif [ "$primer_site_based_filter" == FALSE ]
-	then
-		cat $OUTPUT_NAME/bambu/bambu_read_counts.txt |  awk '{ if ($2 > 1) print }' > $OUTPUT_NAME/temp_files/transcripts_read_counts_more_than_1.txt
-	fi
-
-	cat $OUTPUT_NAME/temp_files/transcripts_read_counts_more_than_1.txt | awk '{ print $1 }' > $OUTPUT_NAME/temp_files/transcripts_read_counts_more_than_1_list_tmp.txt
-
-	cat $OUTPUT_NAME/bambu/extended_annotations.gtf | grep -wf $OUTPUT_NAME/temp_files/transcripts_read_counts_more_than_1_list_tmp.txt > $OUTPUT_NAME/bambu/extended_annotations_read_count_more_than_1.gtf
-	#cat $OUTPUT_NAME/bambu/extended_annotations.gtf | grep -v -wf $OUTPUT_NAME/updated_transcriptome/transcripts_read_counts_more_than_1_list_tmp.txt > $OUTPUT_NAME/discarded_transcripts/extended_annotations_read_count_more_than_1_discarded.gtf
-
-	cat $OUTPUT_NAME/bambu/extended_annotations_read_count_more_than_1.gtf | sed 's/tx./tx/g' | sed 's/BambuTx/tx/g' > $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf
-	cat $OUTPUT_NAME/temp_files/transcripts_read_counts_more_than_1.txt | sed 's/tx./tx/g' | sed 's/BambuTx/tx/g' | awk '{ print $1"\t"$3}' > $OUTPUT_NAME/temp_files/updated_transcriptome.txt
-
-
-	if [ -e "$OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf" ]
+	# check file exists and is not empty
+	if [ -e "$OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf" ]
 	then 	
-		if [ -s "$OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf" ]
+		if [ -s "$OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf" ]
 		then
 			:
 		else
@@ -306,6 +255,53 @@ function read_count_function_first_pass() {
 	fi
 
 }
+
+function primer_site_function() {
+	if [ "$primer_site_based_filter" == TRUE ]
+	then
+		echo "Filtering based on primer BED files..."
+		# used to be a 5bp window created around primers, do we need this..?
+		
+		# write out isoforms which do match primers
+		bedtools intersect -wa -u -a $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf -b $forward_primers | bedtools intersect -wa -a - -b $reverse_primers > $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf
+
+		cat $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $OUTPUT_NAME/temp_files/updated_transcriptome.txt
+		
+		if [ -e "$OUTPUT_NAME/temp_files/updated_transcriptome.txt" ]
+		then 	
+			if [ -s "$OUTPUT_NAME/temp_files/updated_transcriptome.txt" ]
+			then
+				:
+			else
+				echo "Failed to filter based on primers, check logs file"
+				exit 1
+			fi
+		else
+			echo "Failed to filter based on primers, check logs file"
+			exit 1
+		fi
+
+		# Count the number of isoforms kept after primer filtering \
+		count_file1=$(awk '$3 == "transcript" {count++} END {print count}' "$OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf")
+		count_file2=$(awk '$3 == "transcript" {count++} END {print count}' "$OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf")
+
+		# Calculate 50% of the lines in file2
+		primer_threshold=$(printf "%.0f" "$(echo "$count_file2 * 0.5" | bc)")
+
+		# Check if count_file1 is greater than half_count_file2
+		if [ "$count_file1" -lt "$primer_threshold" ] 
+		then
+			echo "WARNING: more than 50% of the isoforms identified with Bambu were removed after primer site filtering"
+		fi
+
+	elif [ "$primer_site_based_filter" == FALSE ]
+	then
+		cat $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf > $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf
+		cat $OUTPUT_NAME/temp_files/updated_transcriptome_count_1.txt > $OUTPUT_NAME/temp_files/updated_transcriptome.txt
+	fi
+}
+
+
 
 function create_metatranscriptome() {
 	echo "Creating an updated transcriptome with novel isoforms..."
@@ -332,19 +328,29 @@ function create_metatranscriptome() {
 }
 
 function remapping_function() {
+	echo "Mapping reads..."
+	for filename in "$path_to_reads"/*.fa
+	do
 
-	running_salmon() {
-		for filename in $path_to_reads/*.fa
-		do
+    	base=$(basename "$filename")
+    	sample_reads="${base%.*}" 
+    
 
-			base=$(basename $filename .fa)
-			
-			salmon quant --quiet -i $OUTPUT_NAME/updated_transcriptome -l A -r $path_to_reads/${base}.fa -o $OUTPUT_NAME/salmon_quants/${base}
+		## NOTES ##
+		# need to adjust setting -p and -N in minimap2
+		# -p default is 0.8, this means sec alignments need to have a score 80% as good as primary
+		# -N default is 5, this means keep up to 5 sec alignments
 
-		done
-	}
+		map_transcriptome_minimap2() {
+    		minimap2 -ax map-ont -p 0.8 -N 0 $OUTPUT_NAME/updated_transcriptome/updated_transcriptome.fa $path_to_reads/${sample_reads}.fa | samtools view -bh > $OUTPUT_NAME/mapped_data/${sample_reads}_transcriptome.bam
+		}
 
-	redirect_output running_salmon
+		redirect_output map_transcriptome_minimap2
+	
+  		redirect_output salmon quant -t $OUTPUT_NAME/updated_transcriptome/updated_transcriptome.fa -l A --noErrorModel -a $OUTPUT_NAME/mapped_data/${sample_reads}_transcriptome.bam -o $OUTPUT_NAME/salmon_quants/${sample_reads}
+
+	done
+
 	
 	if [ -d "$OUTPUT_NAME/salmon_quants" ]
   	then
@@ -437,7 +443,6 @@ cat << EOT >> $OUTPUT_NAME/${OUTPUT_NAME}_report.txt
 
 Number of input samples/barcodes: $num_of_barcodes
 Number of reads across barcodes: $total_reads_input
-Number of reads mapped: $number_reads_mapped
 
 Filters applied:
 	Primer site filter: $primer_site_based_filter
@@ -447,6 +452,7 @@ Filters applied:
 	Samples required to meet read count minimum: $samples_minimum
 
 Number of reads across barcodes post-downsampling: $total_reads_post_downsample
+Number of reads mapped: $number_reads_mapped
 
 Known isoforms identified: $filtered_transcripts_known
 Novel isoforms identified: $filtered_transcripts_novel
@@ -482,11 +488,11 @@ run_bambu_function
 
 ########## 2.b. Filtering bambu transcripts and creating a transcriptome ##########
 
-# Primer site filter
-primer_site_function
-
 # Read count filter 
 read_count_function_first_pass
+
+# Primer site filter
+primer_site_function
 
 # metatranscriptome with salmon
 create_metatranscriptome

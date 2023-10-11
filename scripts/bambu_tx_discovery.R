@@ -29,24 +29,24 @@ suppressWarnings({
     stop("At least one argument must be supplied (input file).n", call.=FALSE)
   }
   
-  
   test.bam <- (opt$bam)
   fa.file <- (opt$fasta)
   gtf.file <- (opt$annotation)
   
   bambuAnnotations <- prepareAnnotations(gtf.file)
   
-  se <- bambu(reads = test.bam, annotations = bambuAnnotations, genome = fa.file, NDR=1, opt.discovery=list(min.readFractionByGene=0.001))
+  # NOTES
+  # NDR of 1 also means no false-discovery adjustment, do we really want to return low confidence isoforms?
+  # min.readFractionByGene is extremely low. Currently outputs isoforms with 0.1% relative abundace, so 1 read in 1000.
+  # have tried adjusting min.exonDistance, but dpesn't seem to do anything
   
+  se <- bambu(reads = test.bam, annotations = bambuAnnotations, genome = fa.file, NDR=1, opt.discovery=list(min.readFractionByGene=0.001))
   
   writeBambuOutput(se, opt$output_dir)
   
-  #UC <- assays(se)$uniqueCounts
-  #CPM <- assays(se)$CPM
-  RC <- assays(se)$counts
-  
-  #write.table(UC, file.path(opt$output_dir, "uniqueCounts.txt"), sep = "\t")
-  #write.table(CPM, file.path(opt$output_dir, "CPM.txt"), sep = "\t")
-  write.table(RC, file.path(opt$output_dir, "bambu_read_counts.txt"), sep = "\t")
+  # only outputs one row?
+  metadata_bambu <- data.frame(mcols(se))
+
+  write.csv(metadata_bambu, file.path(opt$output_dir, "bambu_metadata.csv"))
   
 })
