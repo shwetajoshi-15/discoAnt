@@ -230,7 +230,8 @@ function run_bambu_function() {
 
 function read_count_function_first_pass() {
 	# same read count > 1 threshold  
-	cat $OUTPUT_NAME/bambu/counts_transcript.txt |  awk '{ if ($3 > 1) print $1 }' | tail -n +2 > $OUTPUT_NAME/temp_files/transcripts_combined_counts_1_list.txt
+	cat "$OUTPUT_NAME/bambu/counts_transcript.txt" | awk -v min_count="$read_count_minimum" '{ if ($3 > min_count ) print $1 }' | tail -n +2 > "$OUTPUT_NAME/temp_files/transcripts_combined_counts_1_list.txt"
+
 	
 	# subset bambu GTF for the transcripts that passed threshold
 	cat $OUTPUT_NAME/bambu/extended_annotations.gtf | grep -wf $OUTPUT_NAME/temp_files/transcripts_combined_counts_1_list.txt > $OUTPUT_NAME/bambu/extended_annotations_count_1.gtf
@@ -329,47 +330,6 @@ function create_metatranscriptome() {
 }
 
 function remapping_function() {
-	echo "Mapping reads..."
-	for filename in "$path_to_reads"/*.fa
-	do
-
-    	base=$(basename "$filename")
-    	sample_reads="${base%.*}" 
-    
-
-		## NOTES ##
-		# need to adjust setting -p and -N in minimap2
-		# -p default is 0.8, this means sec alignments need to have a score 80% as good as primary
-		# -N default is 5, this means keep up to 5 sec alignments
-
-		map_transcriptome_minimap2() {
-    		minimap2 -ax map-ont -p 0.9 -N 3 $OUTPUT_NAME/updated_transcriptome/updated_transcriptome.fa $path_to_reads/${sample_reads}.fa | samtools view -bh > $OUTPUT_NAME/mapped_data/${sample_reads}_transcriptome.bam
-		}
-
-		redirect_output map_transcriptome_minimap2
-	
-  		redirect_output salmon quant -t $OUTPUT_NAME/updated_transcriptome/updated_transcriptome.fa -l A --noErrorModel -a $OUTPUT_NAME/mapped_data/${sample_reads}_transcriptome.bam -o $OUTPUT_NAME/salmon_quants/${sample_reads}
-
-	done
-
-	
-	if [ -d "$OUTPUT_NAME/salmon_quants" ]
-  	then
-		if [ "$(ls -A $OUTPUT_NAME/salmon_quants)" ] 
-		then
-     		:
-		else
-    		echo "Failed to quantify with salmon, check logs file"
-			exit 1
-		fi
- 	else
-		echo "Failed to quantify with salmon, check logs file"
-		exit 1
-  	fi
-
-}
-
-function remapping_function_original() {
 	echo "Mapping reads..."
 	running_salmon() {
 		for filename in $path_to_reads/*.fa
@@ -533,11 +493,7 @@ create_metatranscriptome
 ########## 2.c. Re-aligning and quantifying filtered bambu transcripts  ##########
 
 # remap to salmon metatranscriptome
-
-# new, remaps to transcriptome
 remapping_function
-# old, uses salmon in mapping mode
-#remapping_function_original
 
 
 ########## 2.d. Generating count matrix   ##########

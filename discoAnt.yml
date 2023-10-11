@@ -1,4 +1,4 @@
-name: discoAnt_updated
+name: discoAnt_2023
 channels:
   - conda-forge
   - bioconda
@@ -14,7 +14,7 @@ dependencies:
   - gffcompare
   - minimap2
   - python>=3.7.6
-  - r-base=4.3.1
+  - r-base
   - r-biocmanager
   - r-optparse
   - bioconductor-bambu
