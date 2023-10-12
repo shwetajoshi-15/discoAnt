@@ -35,12 +35,7 @@ suppressWarnings({
   
   bambuAnnotations <- prepareAnnotations(gtf.file)
   
-  # NOTES
-  # NDR of 1 also means no false-discovery adjustment, do we really want to return low confidence isoforms?
-  # min.readFractionByGene is extremely low. Currently outputs isoforms with 0.1% relative abundace, so 1 read in 1000.
-  # have tried adjusting min.exonDistance, but dpesn't seem to do anything
-  
-  se <- bambu(reads = test.bam, annotations = bambuAnnotations, genome = fa.file, NDR=1, opt.discovery=list(min.readFractionByGene=0.001))
+  se <- bambu(reads = test.bam, annotations = bambuAnnotations, genome = fa.file, NDR=1, opt.discovery=list(min.readFractionByGene=0.005))
   
   writeBambuOutput(se, opt$output_dir)
   

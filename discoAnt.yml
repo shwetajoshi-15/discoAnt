@@ -1,4 +1,4 @@
-name: discoAnt_2023
+name: discoAnt
 channels:
   - conda-forge
   - bioconda
@@ -9,7 +9,7 @@ dependencies:
   - bbmap
   - bedtools
   - samtools
-  - salmon
+  - salmon=0.14.2
   - gffread
   - gffcompare
   - minimap2
@@ -18,14 +18,14 @@ dependencies:
   - r-biocmanager
   - r-optparse
   - bioconductor-bambu
-  - numpy
-  - openssl
-  - pybedtools
-  - pysam
-  - scipy
-  - cython
-  - scikit-learn
-  - r-ggplot2
-  - r-ggplotify
-  - biopython
-  - bx-python
+#  - numpy
+#  - openssl
+#  - pybedtools
+#  - pysam
+#  - scipy
+#  - cython
+#  - scikit-learn
+#  - r-ggplot2
+#  - r-ggplotify
+#  - biopython
+#  - bx-python
