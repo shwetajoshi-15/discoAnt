@@ -268,10 +268,12 @@ function primer_site_function() {
 		echo "Filtering based on primer BED files..."
 		# used to be a 5bp window created around primers, do we need this..?
 		
-		# intersect primers with GTF
-		bedtools intersect -wa -u -a $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf -b $forward_primers | bedtools intersect -wa -a - -b $reverse_primers > $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1_primer.gtf
-		# write list of transcripts that match primers
-		cat $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1_primer.gtf | awk '{ if ($3 == "transcript") print $12 }' | sed 's/"//g' | sed 's/;//g' > $OUTPUT_NAME/temp_files/updated_transcriptome.txt
+		# intersect forward and reverse primers with GTF
+		cat $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf | awk '{ if ($3 == "exon") print }' | bedtools intersect -wa -u -a - -b $forward_primers | grep -o 'transcript_id "[^"]*' | cut -d' ' -f2 | sed 's/"//g' > $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_forward_primer_exons.txt
+		cat $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf | awk '{ if ($3 == "exon") print }' | bedtools intersect -wa -a - -b $reverse_primers | grep -o 'transcript_id "[^"]*' | cut -d' ' -f2 | sed 's/"//g' > $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_reverse_primer_exons.txt
+		
+		# combine isoforms found in both forward and reverse primers
+		comm -12 <(sort $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_forward_primer_exons.txt) <(sort $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_reverse_primer_exons.txt) > $OUTPUT_NAME/temp_files/updated_transcriptome.txt
 		
 		# subset GTF that passed counts filtering with new list of transcripts that match primers
 		cat $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf | grep -wf $OUTPUT_NAME/temp_files/updated_transcriptome.txt > $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf
