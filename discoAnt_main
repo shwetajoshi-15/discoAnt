@@ -113,6 +113,10 @@ function concat_files() {
 }
 
 function downsampling_function() {
+	if [ -z "$downsampling" ]
+	then
+    		downsampling=TRUE # Set to the default value if empty
+  	fi
 
 	if [ "$downsampling" == TRUE ]
 	then
@@ -263,6 +267,12 @@ function read_count_function_first_pass() {
 }
 
 function primer_site_function() {
+	
+	if [ -z "$primer_site_based_filter" ]
+	then
+    		primer_site_based_filter=FALSE # Set to the default value if empty
+  	fi
+
 	if [ "$primer_site_based_filter" == TRUE ]
 	then
 		echo "Filtering based on primer BED files..."
