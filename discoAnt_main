@@ -43,6 +43,8 @@ echo "Indexing and filtering reference files..."
 grep $ENSG_ID $ANNA_GTF > $OUTPUT_NAME/temp_files/filt_chr.gtf
 ANNA_GTF_filt=$OUTPUT_NAME/temp_files/filt_chr.gtf
 
+# need to do #
+# use filtered GTF to extract chromosome to filter FASTA, remove from parameters file
 # FASTA
 samtools faidx $REF_GENOME_FN $chr -o $OUTPUT_NAME/temp_files/filt_chr.fa
 REF_GENOME_FN_filt=$OUTPUT_NAME/temp_files/filt_chr.fa
