@@ -509,6 +509,14 @@ function sqanti_function() {
 
 }
 
+
+#### plot PCA 
+
+function plot_PCA() {
+	redirect_output Rscript $SCRIPT_DIR/scripts/plot_PCA.R -i $OUTPUT_NAME/$OUTPUT_NAME"_counts.csv" -o "$OUTPUT_NAME/$ENSG_ID"
+}
+
+
 function generate_report_function() {
 cat << EOT >> $OUTPUT_NAME/${OUTPUT_NAME}_report.txt
 `date`
@@ -589,7 +597,9 @@ combine_quants_function
 # some zero count isoforms result after the secound round of quants with salmon
 read_count_function_second_pass
 
-
+###### plot PCA
+echo "Generating PCA plot..."
+plot_PCA
 ########## 3. Annotating transcripts ##########
 echo "Annotating isoforms..."
 # run with gffcompare
