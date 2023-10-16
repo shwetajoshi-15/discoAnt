@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-# get directory of discoAnt script
+# get directory of current script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
 
 # source parameters file
 source ${1}
@@ -15,48 +14,76 @@ echo \
 ██   ██ ██      ██ ██      ██    ██ ██   ██ ██  ██ ██    ██    
 ██████  ██ ███████  ██████  ██████  ██   ██ ██   ████    ██ 
 "
-# update to v3?
-echo "v2.1"
 
-# add section here to check if the $OUTPUT_NAME directory already exists, if it does, exit
+#echo "v1.0"
+
+# if the $OUTPUT_NAME directory already exists, exit
 if [ -d $OUTPUT_NAME ] 
 then
 	echo "$OUTPUT_NAME already exists"
-	exit 1  # Exit the script with a non-zero status code (1)
+	exit 1
 fi
 
 # make directories
-mkdir -p $OUTPUT_NAME
-mkdir -p $OUTPUT_NAME/samples
-mkdir -p $OUTPUT_NAME/mapped_data
-mkdir -p $OUTPUT_NAME/bambu
-mkdir -p $OUTPUT_NAME/salmon_quants
-mkdir -p $OUTPUT_NAME/updated_transcriptome
-mkdir -p $OUTPUT_NAME/annotated_isoforms
-mkdir -p $OUTPUT_NAME/temp_files
+mkdir $OUTPUT_NAME
+mkdir $OUTPUT_NAME/temp_files
 
-# filter reference files and index reference genome
-echo "Running on reads in: $FASTA"
-echo "Indexing and filtering reference files..."
-
-# GTF
-grep $ENSG_ID $ANNA_GTF > $OUTPUT_NAME/temp_files/filt_chr.gtf
-ANNA_GTF_filt=$OUTPUT_NAME/temp_files/filt_chr.gtf
-
-# need to do #
-# use filtered GTF to extract chromosome to filter FASTA, remove from parameters file
-# FASTA
-samtools faidx $REF_GENOME_FN $chr -o $OUTPUT_NAME/temp_files/filt_chr.fa
-REF_GENOME_FN_filt=$OUTPUT_NAME/temp_files/filt_chr.fa
-
-# Define logs file
+# make logs file
 log_file="$OUTPUT_NAME/discoAnt.logs"
-# Function to redirect output to the log file
-redirect_output() {
+# function to redirect output to the log file
+function redirect_output() {
     # Redirect both stdout (1) and stderr (2) to the log file
     {
         "$@"
     } >> "$log_file" 2>&1
+}
+
+# main script functions
+function filter_reference_files() {
+	
+	echo "Running on reads in: $FASTA"
+	echo "Indexing and filtering reference files..."
+
+	# filter GTF by ensembl id
+	grep $ENSG_ID $ANNA_GTF > $OUTPUT_NAME/temp_files/filt_chr.gtf
+	ANNA_GTF_filt=$OUTPUT_NAME/temp_files/filt_chr.gtf
+
+	# get chr from GTF to filter genome
+	chr=$( cat $ANNA_GTF_filt | sed -n '10p' | awk '{ print $1}' )
+	
+	# check file exists and is not empty
+	if [ -e "$ANNA_GTF_filt" ]
+	then 	
+		if [ -s "$ANNA_GTF_filt" ]
+		then
+			:
+		else
+			echo "Failed to filter GTF, check ENSG_ID is in GTF and logs file"
+			exit 1
+		fi
+	else
+		echo "Failed to filter GTF, check ENSG_ID is in GTF and logs file"
+		exit 1
+	fi
+
+	# filter and index genome FASTA
+	samtools faidx $REF_GENOME_FN $chr -o $OUTPUT_NAME/temp_files/filt_chr.fa
+	REF_GENOME_FN_filt=$OUTPUT_NAME/temp_files/filt_chr.fa
+
+	if [ -e "$REF_GENOME_FN_filt" ]
+	then 	
+		if [ -s "$REF_GENOME_FN_filt" ]
+		then
+			:
+		else
+			echo "Failed to filter genome by chromosome, check GTF and genome have the same chromosome naming and logs file"
+			exit 1
+		fi
+	else
+		echo "Failed to filter genome by chromosome, check GTF and genome have the same chromosome naming and logs file"
+		exit 1
+	fi
+
 }
 
 function check_for_fastq_or_fasta_files() {
@@ -64,36 +91,35 @@ function check_for_fastq_or_fasta_files() {
 	if [ -d "$FASTA" ] 
 	then
         
-        # Use find to search for FASTQ or FASTA files
+        # use find to search for FASTQ or FASTA files
         if find "$FASTA" -maxdepth 2 -type f \( -name "*.fastq"  -o -name "*.fastq.gz" -o -name "*.fasta" -o -name "*.fa" \) -print -quit | grep -q . 
 		then
             :
-			# Call the next function or perform the next task here
         else
             echo "No FASTQ or FASTA files found within subdirectories of $FASTA"
-            exit 1  # Exit the script with a non-zero status code
+            exit 1
         fi
 
     else
         echo "Directory not found: $FASTA"
-        exit 1  # Exit the script with a non-zero status code
+        exit 1
     fi
     
 }
 
 function concat_files() {
 	
-	mkdir $OUTPUT_NAME/samples/reads
+	mkdir $OUTPUT_NAME/temp_files/reads
 
 	# run on all subdirectories in $FASTA
 	find "$FASTA" -mindepth 1 -maxdepth 1 -type d | while read -r dir
 	do
 
-		# Use basename to extract just the directory name
+		# use basename to extract just the directory name
 		dir_name=$(basename "$dir")
 
 		# if BBMap works on gzipped files this may not be required, minimap2 works on gzipped files
-		# Gunzip zipped files
+		# gunzip zipped files
 		for gzipped_file in "$FASTA/$dir_name"/*.gz 
 		do
 			if [ -f "$gzipped_file" ] 
@@ -104,20 +130,20 @@ function concat_files() {
 		done
 		
 		# combine all sample read files into one file
-		cat $FASTA/$dir_name/*.fa* > $OUTPUT_NAME/samples/reads/$dir_name.fa
+		cat $FASTA/$dir_name/*.fa* > $OUTPUT_NAME/temp_files/reads/$dir_name.fa
 
 	done
 
 	# report metrics
-	num_of_barcodes=$( ls -lh $OUTPUT_NAME/samples/reads/*.f* | wc -l )
-	total_reads_input=$(cat $OUTPUT_NAME/samples/reads/*.f* | grep "^[>@]" | wc -l)
+	num_of_barcodes=$( ls -lh $OUTPUT_NAME/temp_files/reads/*.f* | wc -l )
+	total_reads_input=$( cat $OUTPUT_NAME/temp_files/reads/*.f* | grep "^[>@]" | wc -l )
     
 }
 
 function downsampling_function() {
 	if [ -z "$downsampling" ]
 	then
-    		downsampling=TRUE # Set to the default value if empty
+    		downsampling=TRUE # set to the default value if empty
   	fi
 
 	if [ "$downsampling" == TRUE ]
@@ -125,39 +151,40 @@ function downsampling_function() {
 		
 		if [ -z "$number_reads_downsample" ]
 		then
-    		number_reads_downsample="8000" # Set to the default value if empty
+    		number_reads_downsample="8000" # set to the default value if empty
   		fi
 
 		echo "Downsampling reads..."
 
-		mkdir -p $OUTPUT_NAME/samples/downsample_$number_reads_downsample
+		mkdir $OUTPUT_NAME/downsampled_reads
 
-		downsample_for_loop() { 
-			for filename in $OUTPUT_NAME/samples/reads/*.fa
+		function downsample_for_loop() { 
+			for filename in $OUTPUT_NAME/temp_files/reads/*.fa
 			do
 
 				base=$(basename "$filename")
 				sample_name="${base%.*}" 
 				echo "$sample_name downsampling"
-				## Downsample the reads
-				## reformat.sh is from BBMap
+				
+				# downsample the reads using reformat.sh from BBMap
 				reformat.sh sample=$number_reads_downsample \
-				in=$OUTPUT_NAME/samples/reads/$sample_name.fa \
-				out=$OUTPUT_NAME/samples/downsample_$number_reads_downsample/$sample_name.fa
+				in=$OUTPUT_NAME/temp_files/reads/$sample_name.fa \
+				out=$OUTPUT_NAME/downsampled_reads/$sample_name.fa
 
 			done
 		}
 		
 		redirect_output downsample_for_loop
 
-		path_to_reads=$OUTPUT_NAME/samples/downsample_$number_reads_downsample
+		# set path to downsampled reads
+		path_to_reads=$OUTPUT_NAME/downsampled_reads
 
-		total_reads_post_downsample=$(cat $OUTPUT_NAME/samples/downsample_$number_reads_downsample/*.f* | grep "^[>@]" | wc -l)
+		total_reads_post_downsample=$(cat $OUTPUT_NAME/downsampled_reads/*.f* | grep "^[>@]" | wc -l)
 	
 	elif [ "$downsampling" == FALSE ]
 	then
-
-		path_to_reads=$OUTPUT_NAME/samples/reads
+		# set path to reads
+		path_to_reads=$OUTPUT_NAME/temp_files/reads
 
 	fi
 
@@ -165,57 +192,77 @@ function downsampling_function() {
 }
 
 function mapping_genome_function() {
-  # define max intron length for minimap2
-  if [ -z "$max_intron_length" ] 
-  then
-    max_intron_length="400" # Set to the default value if max_intron_length is empty
-  fi
-
-  if [ -z "$splice_flank" ] 
-  then
-    splice_flank="yes" # Set to the default value
-  fi
-  
-  echo "Mapping reads..."
-  for filename in "$path_to_reads"/*.fa
-  do
-
-    base=$(basename "$filename")
-    sample_reads="${base%.*}" 
-    
-	map_reads_minimap2() {
-    	minimap2 -ax splice -G"${max_intron_length}"k --splice-flank="$splice_flank" --eqx $REF_GENOME_FN_filt $path_to_reads/${sample_reads}.fa | samtools view -bh > $OUTPUT_NAME/mapped_data/${sample_reads}.bam
-	}
-
-	redirect_output map_reads_minimap2
 	
-  	samtools view -h -F 2308 $OUTPUT_NAME/mapped_data/${sample_reads}.bam | samtools sort - > $OUTPUT_NAME/mapped_data/${sample_reads}_primary_sorted.bam
+	mkdir $OUTPUT_NAME/mapped_data
 
-  done
+	# define max intron length for minimap2
+	if [ -z "$max_intron_length" ] 
+	then
+		max_intron_length="400" # set to the default value if empty
+	fi
 
-  samtools merge -f $OUTPUT_NAME/mapped_data/${OUTPUT_NAME}_primary_merged.bam $OUTPUT_NAME/mapped_data/*sorted.bam
-  samtools index $OUTPUT_NAME/mapped_data/${OUTPUT_NAME}_primary_merged.bam
+	if [ -z "$splice_flank" ] 
+	then
+		splice_flank="yes" # set to the default value if empty
+	fi
+  
+	echo "Mapping reads..."
 
-  if [ -e "$OUTPUT_NAME/mapped_data/${OUTPUT_NAME}_primary_merged.bam.bai" ]
-  then 
-	:
-  else
-	echo "Failed to create BAM index, check logs file"
-	exit 1
-  fi
+	# loop through each sample/barcode and map to genome with minimap2
+	for filename in "$path_to_reads"/*.fa
+	do
 
-  # counts total reads in a BAM file, for report?
-  number_reads_mapped=$(samtools view $OUTPUT_NAME/mapped_data/${OUTPUT_NAME}_primary_merged.bam | awk '{print $1}' | sort | uniq | wc -l)
+		base=$(basename "$filename")
+		sample_reads="${base%.*}" 
+    
+		function map_reads_minimap2() {
+    		minimap2 -ax splice -G"${max_intron_length}"k --splice-flank="$splice_flank" --eqx $REF_GENOME_FN_filt $path_to_reads/${sample_reads}.fa | samtools view -bh > $OUTPUT_NAME/mapped_data/${sample_reads}.bam
+		}
+
+		redirect_output map_reads_minimap2
+
+		# filter for primary alignments only
+		samtools view -h -F 2308 $OUTPUT_NAME/mapped_data/${sample_reads}.bam | samtools sort - > $OUTPUT_NAME/mapped_data/${sample_reads}_primary_sorted.bam
+
+	done
+
+	# merge all BAMs 
+	samtools merge -f $OUTPUT_NAME/mapped_data/${OUTPUT_NAME}_primary_merged.bam $OUTPUT_NAME/mapped_data/*sorted.bam
+	samtools index $OUTPUT_NAME/mapped_data/${OUTPUT_NAME}_primary_merged.bam
+
+	if [ -e "$OUTPUT_NAME/mapped_data/${OUTPUT_NAME}_primary_merged.bam.bai" ]
+	then 
+		:
+	else
+		echo "Failed to create BAM index, check logs file"
+		exit 1
+	fi
+
+	# counts total reads in a BAM file for report
+	number_reads_mapped=$(samtools view $OUTPUT_NAME/mapped_data/${OUTPUT_NAME}_primary_merged.bam | awk '{print $1}' | sort | uniq | wc -l)
 
 }
 
 function run_bambu_function() {
 	echo "Identifying novel isoforms with Bambu..."
+	mkdir $OUTPUT_NAME/bambu
 
-	# if bambu is the latest version, NDR has to be in opts list, if not, NDR is its own arg
+	if [ -z "$bambu_ndr" ] 
+  	then
+    	bambu_ndr=1 # set to the default value
+  	fi
+
+	if [ -z "$bambu_min_gene_fraction" ] 
+  	then
+    	bambu_min_gene_fraction=0.005 # set to the default value
+  	fi
+
+	# run bambu Rscript 
 	redirect_output Rscript $SCRIPT_DIR/scripts/bambu_tx_discovery.R -b $OUTPUT_NAME/mapped_data/${OUTPUT_NAME}_primary_merged.bam \
 		-f $REF_GENOME_FN_filt \
 		-t $ANNA_GTF_filt \
+		-n $bambu_ndr \
+		-g $bambu_min_gene_fraction \
 		-o $OUTPUT_NAME/bambu
 
 	if [ -e "$OUTPUT_NAME/bambu/extended_annotations.gtf" ]
@@ -237,14 +284,13 @@ function run_bambu_function() {
 function read_count_function_first_pass() {
 	if [ -z "$read_count_minimum" ]
 	then
-    	read_count_minimum="5" # Set to the default value if empty
+    	read_count_minimum="5" # set to the default value if empty
   	fi
 	
-	# same read count > 1 threshold  
+	# filter for bambu isoforms with read count > threshold 
 	cat "$OUTPUT_NAME/bambu/counts_transcript.txt" | awk -v min_count="$read_count_minimum" '{ if ($3 > min_count ) print $1 }' | tail -n +2 > "$OUTPUT_NAME/temp_files/transcripts_combined_counts_1_list.txt"
 
-	
-	# subset bambu GTF for the transcripts that passed threshold
+	# subset bambu GTF for the isoforms that passed threshold
 	cat $OUTPUT_NAME/bambu/extended_annotations.gtf | grep -wf $OUTPUT_NAME/temp_files/transcripts_combined_counts_1_list.txt > $OUTPUT_NAME/bambu/extended_annotations_count_1.gtf
 	
 	# replace some Bambu naming conventions
@@ -272,7 +318,7 @@ function primer_site_function() {
 	
 	if [ -z "$primer_site_based_filter" ]
 	then
-    		primer_site_based_filter=FALSE # Set to the default value if empty
+    		primer_site_based_filter=FALSE # set to the default value if empty
   	fi
 
 	if [ "$primer_site_based_filter" == TRUE ]
@@ -287,7 +333,7 @@ function primer_site_function() {
 		# combine isoforms found in both forward and reverse primers
 		comm -12 <(sort $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_forward_primer_exons.txt) <(sort $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_reverse_primer_exons.txt) > $OUTPUT_NAME/temp_files/updated_transcriptome.txt
 		
-		# subset GTF that passed counts filtering with new list of transcripts that match primers
+		# subset GTF that passed counts filtering with new list of isoforms that match primers
 		cat $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf | grep -wf $OUTPUT_NAME/temp_files/updated_transcriptome.txt > $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf
 
 		if [ -e "$OUTPUT_NAME/temp_files/updated_transcriptome.txt" ]
@@ -304,14 +350,14 @@ function primer_site_function() {
 			exit 1
 		fi
 
-		# Count the number of isoforms kept after primer filtering \
+		# count the number of isoforms kept after primer filtering \
 		count_file1=$(awk '$3 == "transcript" {count++} END {print count}' "$OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf")
 		count_file2=$(awk '$3 == "transcript" {count++} END {print count}' "$OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf")
 
-		# Calculate 50% of the lines in file2
+		# calculate 50% of the lines in file2
 		primer_threshold=$(printf "%.0f" "$(echo "$count_file2 * 0.5" | bc)")
 
-		# Check if count_file1 is greater than half_count_file2
+		# check if count_file1 is greater than half_count_file2
 		if [ "$count_file1" -lt "$primer_threshold" ] 
 		then
 			echo "WARNING: more than 50% of the isoforms identified with Bambu were removed after primer site filtering"
@@ -319,6 +365,7 @@ function primer_site_function() {
 
 	elif [ "$primer_site_based_filter" == FALSE ]
 	then
+		# use isoforms that passed read count filtering 
 		cat $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_count_1.gtf > $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf
 		cat $OUTPUT_NAME/temp_files/updated_transcriptome_count_1.txt > $OUTPUT_NAME/temp_files/updated_transcriptome.txt
 	fi
@@ -326,7 +373,9 @@ function primer_site_function() {
 
 function create_metatranscriptome() {
 	echo "Creating an updated transcriptome with novel isoforms..."
+	mkdir $OUTPUT_NAME/updated_transcriptome
 
+	# create an updated transcriptome fasta with gffread using the bambu isoforms
 	redirect_output gffread -w $OUTPUT_NAME/updated_transcriptome/updated_transcriptome.fa -g $REF_GENOME_FN_filt $OUTPUT_NAME/temp_files/${OUTPUT_NAME}_isoforms_pass1.gtf
 	
 	if [ -e "$OUTPUT_NAME/updated_transcriptome/updated_transcriptome.fa" ]
@@ -337,6 +386,7 @@ function create_metatranscriptome() {
 		exit 1
   	fi
 
+	# create a salmon index of the updated transcriptome
 	redirect_output salmon index -t $OUTPUT_NAME/updated_transcriptome/updated_transcriptome.fa -i $OUTPUT_NAME/updated_transcriptome -k 31
 	
 	if [ -e "$OUTPUT_NAME/updated_transcriptome/versionInfo.json" ]
@@ -350,6 +400,9 @@ function create_metatranscriptome() {
 
 function remapping_function() {
 	echo "Mapping reads..."
+	mkdir $OUTPUT_NAME/updated_transcriptome/salmon_quants
+
+	# function to loop through reads from each sample/barcode and quantify with salmon
 	running_salmon() {
 		for filename in $path_to_reads/*.fa
 		do
@@ -357,16 +410,16 @@ function remapping_function() {
 			base=$(basename $filename)
 			sample_reads="${base%.*}"
 			
-			salmon quant --quiet -i $OUTPUT_NAME/updated_transcriptome -l A -r $path_to_reads/${sample_reads}.fa -o $OUTPUT_NAME/salmon_quants/${sample_reads}
+			salmon quant --quiet -i $OUTPUT_NAME/updated_transcriptome -l A -r $path_to_reads/${sample_reads}.fa -o $OUTPUT_NAME/updated_transcriptome/salmon_quants/${sample_reads}
 
 		done
 	}
 
 	redirect_output running_salmon
 		
-	if [ -d "$OUTPUT_NAME/salmon_quants" ]
+	if [ -d "$OUTPUT_NAME/updated_transcriptome/salmon_quants" ]
   	then
-		if [ "$(ls -A $OUTPUT_NAME/salmon_quants)" ] 
+		if [ "$(ls -A $OUTPUT_NAME/updated_transcriptome/salmon_quants)" ] 
 		then
      		:
 		else
@@ -383,7 +436,7 @@ function remapping_function() {
 function combine_quants_function() {
 	if [ -z "$read_count_minimum" ]
 	then
-    	read_count_minimum="5" # Set to the default value if empty
+    	read_count_minimum="5" # set to the default value if empty
   	fi
 
 	if [ -z "$samples_minimum" ]
@@ -392,8 +445,11 @@ function combine_quants_function() {
   	fi
 	
 	echo "Generating isoform counts..."
+
+	# run Rscript to combine quant.sf files produced by salmon to produce isoform counts
 	Rscript $SCRIPT_DIR/scripts/combine_salmon_quants.R -e $ENSG_ID -m $read_count_minimum -s $samples_minimum -o $OUTPUT_NAME
 
+	# calculate number of reads in the isoform counts for report
 	reads_remaining_final=$(cat $OUTPUT_NAME/temp_files/remaining_read_sum.txt)
 
 }
@@ -428,8 +484,12 @@ function read_count_function_second_pass() {
 }
 
 function gffcomp_function() {
+	mkdir $OUTPUT_NAME/annotated_isoforms
+
+	# run gffcompare on the new isoforms and original reference GTF
 	redirect_output gffcompare -r $ANNA_GTF_filt -o $OUTPUT_NAME/annotated_isoforms/gffcomp $OUTPUT_NAME/${OUTPUT_NAME}_isoforms.gtf
 	
+	# put gffcompare outputs in directory
 	mv $OUTPUT_NAME/gffcomp.* $OUTPUT_NAME/annotated_isoforms/
 
 }
@@ -453,35 +513,41 @@ function generate_report_function() {
 cat << EOT >> $OUTPUT_NAME/${OUTPUT_NAME}_report.txt
 `date`
 
-Number of input samples/barcodes: $num_of_barcodes
-Number of reads across barcodes: $total_reads_input
-
 Filters applied:
 	Primer site filter: $primer_site_based_filter
 	Downsampling: $downsampling
 	Downsampled to number of reads: $number_reads_downsample
 	Read count minimum: $read_count_minimum
 	Samples required to meet read count minimum: $samples_minimum
+	Bambu novel discovery rate (NDR): $bambu_ndr
+	Bambu minimum read fraction by gene: $bambu_min_gene_fraction
 
-Number of reads across barcodes post-downsampling: $total_reads_post_downsample
-Number of reads mapped: $number_reads_mapped
+Number of input samples/barcodes: $num_of_barcodes
+Total number of reads in samples/barcodes: $total_reads_input
+
+Total number of reads in samples/barcodes post-downsampling: $total_reads_post_downsample
+Number of reads mapped to genome: $number_reads_mapped
 
 Known isoforms identified: $filtered_transcripts_known
 Novel isoforms identified: $filtered_transcripts_novel
 
-Reads mapped to known/novel isoforms: $reads_remaining_final
+Number of reads mapped to known/novel isoforms: $reads_remaining_final
 
 EOT
 }
 
 
+
 ########## 0. Counting the number of reads and downsampling ##########
+
+# filter input references
+filter_reference_files
 
 # check filetypes
 check_for_fastq_or_fasta_files
 concat_files
 
-# Downsampling
+# downsampling
 downsampling_function
 
 
@@ -499,10 +565,10 @@ run_bambu_function
 
 ########## 2.b. Filtering bambu transcripts and creating a transcriptome ##########
 
-# Read count filter 
+# read count filter 
 read_count_function_first_pass
 
-# Primer site filter
+# primer site filter
 primer_site_function
 
 # metatranscriptome with salmon
@@ -539,8 +605,7 @@ gffcomp_function
 echo "Generating report..."
 generate_report_function
 
-# removing temp files
-# currently commented out while de-bugging
+# remove temp files
 #rm -rf $OUTPUT_NAME/temp_files
 
 ########## Finished ##########

@@ -29,11 +29,11 @@ suppressWarnings({
   outdir <- (opt$output_path)
 
   # get sample ids from within directory
-  sample_names <- c(list.files(paste0(outdir,"/salmon_quants/")))
+  sample_names <- c(list.files(paste0(outdir,"/updated_transcriptome/salmon_quants/")))
 
   import_quants_function <- function(sample_id) {
     # get paths of file to import
-    pathtofile <- paste0(outdir,"/salmon_quants/", sample_id, "/quant.sf")
+    pathtofile <- paste0(outdir,"/updated_transcriptome/salmon_quants/", sample_id, "/quant.sf")
     df <- read.table(pathtofile, header=T)
     # keep only txname and read counts columns
     df <- df[, c("Name", "NumReads")]
